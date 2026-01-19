@@ -61,17 +61,18 @@ export const pull = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const folders = await ctx.db
-      .query("folders")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .filter((q) => q.gt(q.field("updatedAt"), args.since))
-      .collect();
-
-    const documents = await ctx.db
-      .query("documents")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .filter((q) => q.gt(q.field("updatedAt"), args.since))
-      .collect();
+    const [folders, documents] = await Promise.all([
+      ctx.db
+        .query("folders")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .filter((q) => q.gt(q.field("updatedAt"), args.since))
+        .collect(),
+      ctx.db
+        .query("documents")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .filter((q) => q.gt(q.field("updatedAt"), args.since))
+        .collect(),
+    ]);
 
     return {
       folders,

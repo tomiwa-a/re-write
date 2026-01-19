@@ -5,6 +5,7 @@ export interface Folder {
   id: string;
   name: string;
   parentId?: string;
+  userId: string;
   createdAt: number;
   updatedAt: number;
   syncedAt?: number;
@@ -16,6 +17,7 @@ export interface Document {
   title: string;
   content: unknown;
   folderId?: string;
+  userId: string;
   createdAt: number;
   updatedAt: number;
   isArchived?: boolean;
