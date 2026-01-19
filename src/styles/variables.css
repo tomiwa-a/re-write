@@ -11,6 +11,6 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   --radius: 8px;
   --radius-lg: 12px;
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: 'Nunito', system-ui, -apple-system, sans-serif;
   --transition: 150ms ease;
 }
