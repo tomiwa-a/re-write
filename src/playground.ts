@@ -111,6 +111,7 @@ async function createFolder() {
   const parentId = els.newFolderParentSelect.value || undefined;
 
   await folderService.create({ name, parentId, userId: currentUserId });
+  syncEngine.requestSync(); // Trigger immediate push
   els.newFolderName.value = "";
   await refreshFolders();
 }
@@ -158,6 +159,7 @@ async function createDoc() {
     content: { text: "Initial content..." }
   });
   
+  syncEngine.requestSync(); // Trigger immediate push
   els.newDocTitle.value = "";
   await refreshDocs();
 }
