@@ -32,6 +32,8 @@ const els = {
   
   refreshQueueBtn: document.getElementById("refreshQueueBtn")!,
   forceSyncBtn: document.getElementById("forceSyncBtn")!,
+  resetSyncBtn: document.getElementById("resetSyncBtn")!,
+  clearDbBtn: document.getElementById("clearDbBtn")!,
   queueDisplay: document.getElementById("queueDisplay")!,
 };
 
@@ -52,11 +54,30 @@ function init() {
   els.createFolderBtn.addEventListener("click", createFolder);
   els.createDocBtn.addEventListener("click", createDoc);
   els.refreshQueueBtn.addEventListener("click", refreshQueue);
+  
   els.forceSyncBtn.addEventListener("click", async () => {
     els.syncStatus.style.display = "inline-block";
     await syncEngine.sync();
     els.syncStatus.style.display = "none";
     refreshAll();
+  });
+
+  els.resetSyncBtn.addEventListener("click", async () => {
+    if (!confirm("Reset sync timestamp? This will fetch ALL data from server.")) return;
+    localStorage.removeItem("lastSync");
+    alert("Sync history reset. Click 'Force Sync' to re-download everything.");
+  });
+
+  els.clearDbBtn.addEventListener("click", async () => {
+    if (!confirm("⚠️ DELETE ALL LOCAL DATA? This cannot be undone.")) return;
+    await Promise.all([
+      db.folders.clear(),
+      db.documents.clear(),
+      db.syncQueue.clear()
+    ]);
+    localStorage.removeItem("lastSync");
+    await refreshAll();
+    alert("Local database wiped.");
   });
 
   // Start initial sync/load
