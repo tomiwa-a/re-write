@@ -19,14 +19,17 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.nav-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  margin: 0 -24px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
 }
 
 .nav-logo {
@@ -213,7 +216,7 @@
 .steps {
   display: flex;
   justify-content: center;
-  gap: 60px;
+  gap: 32px;
   position: relative;
 }
 
@@ -222,7 +225,12 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  max-width: 280px;
+  padding: 32px 24px;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: var(--radius-lg);
 }
 
 .step-number {
@@ -248,6 +256,7 @@
 
 .step-description {
   color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .about {
