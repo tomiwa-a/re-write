@@ -20,6 +20,7 @@ const els = {
   setUserBtn: document.getElementById("setUserBtn")!,
   
   newFolderName: document.getElementById("newFolderName") as HTMLInputElement,
+  newFolderParentSelect: document.getElementById("newFolderParentSelect") as HTMLSelectElement,
   createFolderBtn: document.getElementById("createFolderBtn")!,
   foldersList: document.getElementById("foldersList")!,
   
@@ -86,7 +87,9 @@ async function createFolder() {
   const name = els.newFolderName.value.trim();
   if (!name) return;
   
-  await folderService.create({ name, userId: currentUserId });
+  const parentId = els.newFolderParentSelect.value || undefined;
+
+  await folderService.create({ name, parentId, userId: currentUserId });
   els.newFolderName.value = "";
   await refreshFolders();
 }
@@ -95,16 +98,20 @@ async function refreshFolders() {
   const folders = await folderService.getAll();
   
   // Update List
-  els.foldersList.innerHTML = folders.length ? "<ul>" + folders.map(f => 
-    `<li>
-      <strong>${f.name}</strong> <small>(${f.id})</small>
+  els.foldersList.innerHTML = folders.length ? "<ul>" + folders.map(f => {
+    const parent = f.parentId ? folders.find(p => p.id === f.parentId)?.name || f.parentId : "Root";
+    return `<li>
+      <strong>${f.name}</strong> <small>(Parent: ${parent})</small>
       <button onclick="deleteFolder('${f.id}')">❌</button>
-    </li>`
-  ).join("") + "</ul>" : "<p>No folders found.</p>";
+    </li>`;
+  }).join("") + "</ul>" : "<p>No folders found.</p>";
 
-  // Update Parent Dropdown
-  els.parentFolderSelect.innerHTML = '<option value="">(No Parent)</option>' + 
+  // Update Parent Dropdown options
+  const options = '<option value="">(No Parent)</option>' + 
     folders.map(f => `<option value="${f.id}">${f.name}</option>`).join("");
+  
+  els.parentFolderSelect.innerHTML = options;
+  els.newFolderParentSelect.innerHTML = options;
 }
 
 (window as any).deleteFolder = async (id: string) => {
