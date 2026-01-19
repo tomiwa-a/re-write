@@ -38,7 +38,11 @@ export class SyncEngine {
   }
 
   async sync() {
-    if (this.isSyncing || !this.userId || !navigator.onLine) return;
+    const isOnline =
+      typeof navigator !== "undefined" && navigator.onLine !== undefined
+        ? navigator.onLine
+        : true;
+    if (this.isSyncing || !this.userId || !isOnline) return;
 
     try {
       this.isSyncing = true;

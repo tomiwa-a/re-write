@@ -11,6 +11,7 @@ export const documentService = {
     title: string;
     content?: unknown;
     folderId?: string;
+    userId: string;
   }): Promise<Document> {
     const now = Date.now();
     const doc: Document = {
@@ -19,6 +20,7 @@ export const documentService = {
       title: data.title,
       content: data.content ?? null,
       folderId: data.folderId,
+      userId: data.userId,
       createdAt: now,
       updatedAt: now,
       isArchived: false,
