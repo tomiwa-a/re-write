@@ -1,0 +1,16 @@
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-grid: #f0f0f0;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --accent: #22c55e;
+  --accent-hover: #16a34a;
+  --border: #e5e7eb;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-sans: 'Nunito', system-ui, -apple-system, sans-serif;
+  --transition: 150ms ease;
+}
