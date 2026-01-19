@@ -1,16 +1,16 @@
 import { db } from "./db";
 import { api } from "../../convex/_generated/api";
-import type { ConvexReactClient } from "convex/react";
+import type { ConvexClient } from "convex/browser";
 
 const SYNC_INTERVAL = 10_000; // 10 seconds
 
 export class SyncEngine {
-  private client: ConvexReactClient;
+  private client: ConvexClient;
   private userId: string | null = null;
   private isSyncing = false;
-  private intervalId: number | null = null;
+  private intervalId: number | any = null;
 
-  constructor(client: ConvexReactClient) {
+  constructor(client: ConvexClient) {
     this.client = client;
   }
 

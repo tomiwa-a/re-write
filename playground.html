@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>reWrite Backend Playground</title>
+    <style>
+      body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background: #f4f4f4; }
+      .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+      h2 { margin-top: 0; }
+      button { padding: 8px 12px; cursor: pointer; margin-right: 5px; }
+      input { padding: 8px; margin-right: 5px; }
+      pre { background: #eee; padding: 10px; overflow-x: auto; border-radius: 4px; font-size: 12px; }
+      .status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+      .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+      .online { background: #d4edda; color: #155724; }
+      .offline { background: #f8d7da; color: #721c24; }
+      .sync-active { background: #cce5ff; color: #004085; }
+    </style>
+  </head>
+  <body>
+    <h1>reWrite Core Integration</h1>
+    
+    <div class="status-bar">
+      <div>
+        <span id="connectionStatus" class="badge">Checking...</span>
+        <span id="syncStatus" class="badge" style="display:none">Syncing...</span>
+      </div>
+      <div>
+        <label>User ID: <input type="text" id="userIdInput" value="user_123" /></label>
+        <button id="setUserBtn">Set User</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📁 Folders</h2>
+      <div style="margin-bottom: 10px;">
+        <input type="text" id="newFolderName" placeholder="Folder Name" />
+        <button id="createFolderBtn">Create Folder</button>
+      </div>
+      <div id="foldersList">Loading...</div>
+    </div>
+
+    <div class="card">
+      <h2>📝 Documents</h2>
+      <div style="margin-bottom: 10px;">
+        <input type="text" id="newDocTitle" placeholder="Document Title" />
+        <select id="newDocType">
+          <option value="note">Note</option>
+          <option value="canvas">Canvas</option>
+          <option value="erd">ERD</option>
+        </select>
+        <select id="parentFolderSelect">
+          <option value="">(No Parent)</option>
+        </select>
+        <button id="createDocBtn">Create Document</button>
+      </div>
+      <div id="docsList">Loading...</div>
+    </div>
+
+    <div class="card">
+      <h2>🔄 Sync Queue (Internal)</h2>
+      <button id="refreshQueueBtn">Refresh Queue</button>
+      <button id="forceSyncBtn">Force Sync Now</button>
+      <pre id="queueDisplay">No pending items</pre>
+    </div>
+
+    <script type="module" src="/src/playground.ts"></script>
+  </body>
+</html>
