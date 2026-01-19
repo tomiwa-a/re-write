@@ -5,20 +5,23 @@ import { authTables } from "@convex-dev/auth/server";
 export default defineSchema({
   ...authTables,
   folders: defineTable({
+    id: v.string(),
     name: v.string(),
-    parentId: v.optional(v.id("folders")),
+    parentId: v.optional(v.string()),
     userId: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_parent", ["parentId"]),
+    .index("by_parent", ["parentId"])
+    .index("by_uuid", ["id"]),
 
   documents: defineTable({
+    id: v.string(),
     type: v.union(v.literal("note"), v.literal("canvas"), v.literal("erd")),
     title: v.string(),
     content: v.any(),
-    folderId: v.optional(v.id("folders")),
+    folderId: v.optional(v.string()),
     userId: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -26,7 +29,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_folder", ["folderId"])
-    .index("by_type", ["userId", "type"]),
+    .index("by_type", ["userId", "type"])
+    .index("by_uuid", ["id"]),
 
   shares: defineTable({
     documentId: v.id("documents"),
