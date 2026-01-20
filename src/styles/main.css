@@ -152,7 +152,7 @@
 
 .features {
   padding: 80px 0;
-  background-color: var(--bg-secondary);
+  background-color: #fdfcfa;
 }
 
 .features-grid {
@@ -288,7 +288,7 @@
 
 .about {
   padding: 80px 0;
-  background-color: var(--bg-secondary);
+  background-color: #fdfcfa;
 }
 
 .about-content {

@@ -6,12 +6,18 @@
 import './styles/app.css';
 import './styles/components.css';
 import './styles/share-modal.css';
+import './styles/get-started-modal.css';
 import { ShareModal } from './components/ShareModal';
 import { Toast } from './components/Toast';
 import { ContextMenu, ContextMenuItem } from './components/ContextMenu';
+import { Sidebar } from './components/Sidebar';
+import { GetStartedModal } from './components/GetStartedModal';
 
 class App {
+  private sidebar: Sidebar;
+
   constructor() {
+    this.sidebar = new Sidebar();
     this.init();
   }
 
@@ -39,6 +45,21 @@ class App {
       });
     }
 
+    // Get Started button
+    const getStartedBtn = document.getElementById('get-started-btn');
+    if (getStartedBtn) {
+      getStartedBtn.addEventListener('click', () => {
+        const modal = new GetStartedModal();
+        modal.open();
+      });
+    }
+
+    // Listen for project type selection
+    window.addEventListener('projectTypeSelected', ((e: CustomEvent) => {
+      const { type } = e.detail;
+      this.createProject(type);
+    }) as EventListener);
+
     // New Note button
     const newNoteBtn = document.getElementById('new-note-btn');
     if (newNoteBtn) {
@@ -47,11 +68,27 @@ class App {
       });
     }
 
-    // New Folder button
-    const newFolderBtn = document.getElementById('new-folder-btn');
-    if (newFolderBtn) {
-      newFolderBtn.addEventListener('click', () => {
-        this.createNewFolder();
+    // New Note Folder button
+    const newNoteFolderBtn = document.getElementById('new-note-folder-btn');
+    if (newNoteFolderBtn) {
+      newNoteFolderBtn.addEventListener('click', () => {
+        this.createNewFolder('Notes');
+      });
+    }
+
+    // New Canvas button
+    const newCanvasBtn = document.getElementById('new-canvas-btn');
+    if (newCanvasBtn) {
+      newCanvasBtn.addEventListener('click', () => {
+        this.createNewCanvas();
+      });
+    }
+
+    // New Canvas Folder button
+    const newCanvasFolderBtn = document.getElementById('new-canvas-folder-btn');
+    if (newCanvasFolderBtn) {
+      newCanvasFolderBtn.addEventListener('click', () => {
+        this.createNewFolder('Canvas');
       });
     }
 
@@ -106,11 +143,35 @@ class App {
   private createNewNote(): void {
     Toast.success('Creating new note...');
     // TODO: Implement actual note creation
+    this.sidebar.refresh();
   }
 
-  private createNewFolder(): void {
-    Toast.success('Creating new folder...');
+  private createNewCanvas(): void {
+    Toast.success('Creating new canvas...');
+    // TODO: Implement actual canvas creation
+    this.sidebar.refresh();
+  }
+
+  private createNewFolder(section: string): void {
+    Toast.success(`Creating new ${section.toLowerCase()} folder...`);
     // TODO: Implement actual folder creation
+    this.sidebar.refresh();
+  }
+
+  private createProject(type: string): void {
+    switch (type) {
+      case 'note':
+        Toast.success('Creating new note...');
+        break;
+      case 'canvas':
+        Toast.success('Creating new canvas...');
+        break;
+      case 'erd':
+        Toast.success('Creating new ERD diagram...');
+        break;
+    }
+    // TODO: Implement actual project creation
+    this.sidebar.refresh();
   }
 
   private showNoteContextMenu(e: MouseEvent, item: HTMLElement): void {
