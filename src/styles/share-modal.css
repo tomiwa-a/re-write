@@ -1,0 +1,240 @@
+/**
+ * Share Modal Styles
+ */
+
+.share-modal-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 0 16px 0;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.share-modal-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.share-modal-tab:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text-primary);
+}
+
+.share-modal-tab.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
+}
+
+.share-modal-content {
+  padding-top: 20px;
+}
+
+.share-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.share-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.share-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Link Tab */
+.share-link-group {
+  display: flex;
+  gap: 8px;
+}
+
+.share-link-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: rgba(249, 250, 251, 0.5);
+}
+
+.share-link-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.share-qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: rgba(249, 250, 251, 0.5);
+  border-radius: var(--radius);
+}
+
+.share-qr-code {
+  margin-top: 12px;
+}
+
+.share-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: white;
+  cursor: pointer;
+}
+
+.share-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Invite Tab */
+.share-invite-group {
+  display: flex;
+  gap: 8px;
+}
+
+.share-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
+.share-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.share-select-inline {
+  padding: 10px 14px;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: white;
+  cursor: pointer;
+}
+
+.share-collaborators {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.share-collaborator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(249, 250, 251, 0.5);
+  border-radius: var(--radius);
+}
+
+.share-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.share-collab-info {
+  flex: 1;
+}
+
+.share-collab-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.share-collab-email {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.share-role-badge {
+  padding: 4px 10px;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Export Tab */
+.share-export-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(249, 250, 251, 0.5);
+  border-radius: var(--radius);
+  transition: all 150ms ease;
+}
+
+.share-export-item:hover {
+  background: rgba(249, 250, 251, 0.8);
+}
+
+.share-export-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.share-export-info {
+  flex: 1;
+}
+
+.share-export-format {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.share-export-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
