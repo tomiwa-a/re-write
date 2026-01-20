@@ -1,0 +1,52 @@
+.tiptap-editor {
+  outline: none;
+  min-height: 100%;
+}
+
+.tiptap-editor p {
+  margin: 0 0 1em 0;
+}
+
+.tiptap-editor h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin: 0 0 0.5em 0;
+}
+
+.tiptap-editor h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 0 0 0.5em 0;
+}
+
+.tiptap-editor h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 0 0 0.5em 0;
+}
+
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 1.5em;
+  margin: 0 0 1em 0;
+}
+
+.tiptap-editor li {
+  margin-bottom: 0.25em;
+}
+
+.tiptap-editor strong {
+  font-weight: 700;
+}
+
+.tiptap-editor em {
+  font-style: italic;
+}
+
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-secondary);
+  pointer-events: none;
+  height: 0;
+}

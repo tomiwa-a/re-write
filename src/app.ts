@@ -1,28 +1,38 @@
-/**
- * Main App Entry Point
- * Initializes UI components and event handlers
- */
-
 import './styles/app.css';
 import './styles/components.css';
 import './styles/share-modal.css';
+import './styles/editor.css';
 import { ShareModal } from './components/ShareModal';
 import { Toast } from './components/Toast';
 import { ContextMenu, ContextMenuItem } from './components/ContextMenu';
+import { initEditor, getEditor } from './editor';
+import type { Editor } from '@tiptap/core';
 
 class App {
+  private editor: Editor | null = null;
+
   constructor() {
     this.init();
   }
 
   private init(): void {
+    this.setupEditor();
     this.setupEventListeners();
     this.setupSidebar();
     this.setupToolbar();
   }
 
+  private setupEditor(): void {
+    const editorEl = document.querySelector('.editor') as HTMLElement;
+    if (editorEl) {
+      editorEl.removeAttribute('contenteditable');
+      editorEl.removeAttribute('data-placeholder');
+      editorEl.innerHTML = '';
+      this.editor = initEditor(editorEl);
+    }
+  }
+
   private setupEventListeners(): void {
-    // Share button
     const shareBtn = document.querySelector('.toolbar-action:has(svg path[d*="M4 12v8"])') as HTMLButtonElement;
     if (shareBtn) {
       shareBtn.addEventListener('click', () => {
@@ -31,7 +41,6 @@ class App {
       });
     }
 
-    // Save button
     const saveBtn = document.querySelector('.toolbar-action:has(svg path[d*="M19 21H5"])') as HTMLButtonElement;
     if (saveBtn) {
       saveBtn.addEventListener('click', () => {
@@ -39,7 +48,6 @@ class App {
       });
     }
 
-    // New Note button
     const newNoteBtn = document.getElementById('new-note-btn');
     if (newNoteBtn) {
       newNoteBtn.addEventListener('click', () => {
@@ -47,7 +55,6 @@ class App {
       });
     }
 
-    // New Folder button
     const newFolderBtn = document.getElementById('new-folder-btn');
     if (newFolderBtn) {
       newFolderBtn.addEventListener('click', () => {
@@ -55,7 +62,6 @@ class App {
       });
     }
 
-    // Sidebar toggle
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     if (sidebarToggle && sidebar) {
@@ -66,21 +72,18 @@ class App {
   }
 
   private setupSidebar(): void {
-    // Use event delegation for context menus
     const sidebar = document.querySelector('.sidebar-tree');
     if (sidebar) {
       sidebar.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         const target = e.target as HTMLElement;
         
-        // Check if clicked on tree item
         const treeItem = target.closest('.tree-item');
         if (treeItem) {
           this.showNoteContextMenu(e as MouseEvent, treeItem as HTMLElement);
           return;
         }
         
-        // Check if clicked on tree header (folder)
         const treeHeader = target.closest('.tree-header');
         if (treeHeader) {
           this.showFolderContextMenu(e as MouseEvent, treeHeader as HTMLElement);
@@ -91,13 +94,39 @@ class App {
   }
 
   private setupToolbar(): void {
-    // Toolbar buttons
+    const editor = getEditor();
+    if (!editor) return;
+
     const toolbarBtns = document.querySelectorAll('.toolbar-btn');
     toolbarBtns.forEach((btn) => {
+      const title = btn.getAttribute('title');
       btn.addEventListener('click', () => {
-        const title = btn.getAttribute('title');
-        if (title) {
-          Toast.info(`${title} clicked`);
+        switch (title) {
+          case 'Bold':
+            editor.chain().focus().toggleBold().run();
+            break;
+          case 'Italic':
+            editor.chain().focus().toggleItalic().run();
+            break;
+          case 'Underline':
+            break;
+          case 'Heading 1':
+            editor.chain().focus().toggleHeading({ level: 1 }).run();
+            break;
+          case 'Heading 2':
+            editor.chain().focus().toggleHeading({ level: 2 }).run();
+            break;
+          case 'Heading 3':
+            editor.chain().focus().toggleHeading({ level: 3 }).run();
+            break;
+          case 'Bullet List':
+            editor.chain().focus().toggleBulletList().run();
+            break;
+          case 'Numbered List':
+            editor.chain().focus().toggleOrderedList().run();
+            break;
+          case 'Checklist':
+            break;
         }
       });
     });
