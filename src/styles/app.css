@@ -235,13 +235,14 @@
 }
 
 .tree-content {
-  overflow: hidden;
-  transition: max-height 300ms ease, opacity 200ms ease;
+  overflow: visible;
+  max-height: none;
+  transition: max-height 300ms ease;
 }
 
 .tree-content.collapsed {
   max-height: 0;
-  opacity: 0;
+  overflow: hidden;
 }
 
 .tree-items {
@@ -305,13 +306,14 @@
 
 .tree-folder-items {
   padding-left: 24px;
-  overflow: hidden;
-  transition: max-height 300ms ease, opacity 200ms ease;
+  overflow: visible;
+  max-height: none;
+  transition: max-height 300ms ease;
 }
 
 .tree-folder.collapsed .tree-folder-items {
   max-height: 0;
-  opacity: 0;
+  overflow: hidden;
 }
 
 .main-content {
