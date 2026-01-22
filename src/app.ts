@@ -19,6 +19,7 @@ class App {
     this.setupEditor();
     this.setupEventListeners();
     this.setupSidebar();
+    this.setupAvatarDropdown();
   }
 
   private setupEditor(): void {
@@ -85,6 +86,24 @@ class App {
         if (treeHeader) {
           this.showFolderContextMenu(e as MouseEvent, treeHeader as HTMLElement);
           return;
+        }
+      });
+    }
+  }
+
+  private setupAvatarDropdown(): void {
+    const avatarBtn = document.getElementById('user-avatar-btn');
+    const dropdown = document.getElementById('avatar-dropdown');
+
+    if (avatarBtn && dropdown) {
+      avatarBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!avatarBtn.contains(e.target as Node) && !dropdown.contains(e.target as Node)) {
+          dropdown.classList.remove('show');
         }
       });
     }
