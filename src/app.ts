@@ -46,19 +46,27 @@ class App {
       });
     }
 
-    const newNoteBtn = document.getElementById('new-note-btn');
-    if (newNoteBtn) {
-      newNoteBtn.addEventListener('click', () => {
+    const miniNoteBtn = document.getElementById('new-note-btn-mini');
+    if (miniNoteBtn) {
+      miniNoteBtn.addEventListener('click', () => {
         this.createNewNote();
       });
     }
 
-    const newFolderBtn = document.getElementById('new-folder-btn');
-    if (newFolderBtn) {
-      newFolderBtn.addEventListener('click', () => {
+    // Category Actions
+    document.querySelectorAll('.action-btn[title="New Note"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.createNewNote();
+      });
+    });
+
+    document.querySelectorAll('.action-btn[title="New Folder"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         this.createNewFolder();
       });
-    }
+    });
 
     const sidebar = document.querySelector('.sidebar');
     const sidebarToggle = document.querySelector('.sidebar-toggle');
@@ -97,6 +105,15 @@ class App {
           this.showFolderContextMenu(e as MouseEvent, treeHeader as HTMLElement);
           return;
         }
+      });
+
+      // Category Toggling
+      const headers = document.querySelectorAll('.category-header');
+      headers.forEach(header => {
+        header.addEventListener('click', (e) => {
+          if ((e.target as HTMLElement).closest('.action-btn')) return;
+          header.parentElement?.classList.toggle('expanded');
+        });
       });
     }
   }
