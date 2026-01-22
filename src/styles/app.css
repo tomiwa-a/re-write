@@ -25,14 +25,80 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  z-index: 10;
+  z-index: 20; /* High z-index for dropdowns */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Removed overflow: hidden so dropdowns pop out */
+  position: relative;
 }
 
+.sidebar.collapsed {
+  width: 66px; /* Mini width */
+}
+
+/* Hide text elements when collapsed */
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .search-input,
+.sidebar.collapsed .btn-new span,
+.sidebar.collapsed .btn-new-folder,
+.sidebar.collapsed .tree-item span,
+.sidebar.collapsed .tree-header span,
+.sidebar.collapsed .sidebar-search svg,
+.sidebar.collapsed .icon-btn {
+  display: none;
+  opacity: 0;
+}
+
+/* Adjust layout for collapsed state */
+.sidebar.collapsed .sidebar-top-controls {
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+  align-items: center;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0 0 12px;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed .sidebar-search {
+  background: transparent;
+  padding: 0;
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-actions {
+  padding: 0 12px 16px;
+  align-items: center;
+}
+
+.sidebar.collapsed .btn-new {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%; /* Circle button */
+}
+
+/* Hide tree completely in mini mode or show icons? 
+   User said "just an add icon..., avatar, icon to open".
+   So hide tree and search probably. */
+.sidebar.collapsed .sidebar-tree, 
+.sidebar.collapsed .sidebar-search,
+.sidebar.collapsed .btn-new-folder {
+  display: none; 
+}
+
+/* --- Controls --- */
 .sidebar-top-controls {
   padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: all 0.3s ease;
 }
 
 .icon-btn {
@@ -55,7 +121,9 @@
   width: 32px;
   height: 32px;
   cursor: pointer;
+  flex-shrink: 0;
 }
+
 
 .user-avatar img {
   width: 100%;

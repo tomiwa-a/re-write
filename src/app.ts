@@ -60,12 +60,22 @@ class App {
       });
     }
 
-    const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-      });
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    const sidebarTrigger = document.querySelector('.sidebar-trigger');
+
+    if (sidebar) {
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+          sidebar.classList.add('collapsed');
+        });
+      }
+
+      if (sidebarTrigger) {
+        sidebarTrigger.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+        });
+      }
     }
   }
 
