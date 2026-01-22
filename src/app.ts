@@ -67,7 +67,7 @@ class App {
     if (sidebar) {
       if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
-          sidebar.classList.add('collapsed');
+          sidebar.classList.toggle('collapsed');
         });
       }
 
