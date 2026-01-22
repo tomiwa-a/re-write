@@ -5,7 +5,7 @@ import './styles/editor.css';
 import { ShareModal } from './components/ShareModal';
 import { Toast } from './components/Toast';
 import { ContextMenu, ContextMenuItem } from './components/ContextMenu';
-import { initEditor, getEditor } from './editor';
+import { createEditor } from './editor';
 import type { Editor } from '@tiptap/core';
 
 class App {
@@ -19,16 +19,13 @@ class App {
     this.setupEditor();
     this.setupEventListeners();
     this.setupSidebar();
-    this.setupToolbar();
   }
 
   private setupEditor(): void {
-    const editorEl = document.querySelector('.editor') as HTMLElement;
-    if (editorEl) {
-      editorEl.removeAttribute('contenteditable');
-      editorEl.removeAttribute('data-placeholder');
-      editorEl.innerHTML = '';
-      this.editor = initEditor(editorEl);
+    const toolbarEl = document.getElementById('editor-toolbar') as HTMLElement;
+    const editorEl = document.getElementById('editor-content') as HTMLElement;
+    if (toolbarEl && editorEl) {
+      this.editor = createEditor(editorEl, toolbarEl);
     }
   }
 
@@ -91,45 +88,6 @@ class App {
         }
       });
     }
-  }
-
-  private setupToolbar(): void {
-    const editor = getEditor();
-    if (!editor) return;
-
-    const toolbarBtns = document.querySelectorAll('.toolbar-btn');
-    toolbarBtns.forEach((btn) => {
-      const title = btn.getAttribute('title');
-      btn.addEventListener('click', () => {
-        switch (title) {
-          case 'Bold':
-            editor.chain().focus().toggleBold().run();
-            break;
-          case 'Italic':
-            editor.chain().focus().toggleItalic().run();
-            break;
-          case 'Underline':
-            break;
-          case 'Heading 1':
-            editor.chain().focus().toggleHeading({ level: 1 }).run();
-            break;
-          case 'Heading 2':
-            editor.chain().focus().toggleHeading({ level: 2 }).run();
-            break;
-          case 'Heading 3':
-            editor.chain().focus().toggleHeading({ level: 3 }).run();
-            break;
-          case 'Bullet List':
-            editor.chain().focus().toggleBulletList().run();
-            break;
-          case 'Numbered List':
-            editor.chain().focus().toggleOrderedList().run();
-            break;
-          case 'Checklist':
-            break;
-        }
-      });
-    });
   }
 
   private createNewNote(): void {
