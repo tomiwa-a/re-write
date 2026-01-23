@@ -190,7 +190,7 @@ export class SidebarManager {
              html += `
               <div class="tree-item folder" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
                  <span class="folder-icon">${isExpanded ? IconFolderOpen : IconFolder}</span>
-                 <span>${item.title}</span>
+                 <span class="item-title">${item.title}</span>
               </div>
               ${isExpanded && item.children ? this.renderItems(item.children, level + 1) : ''}
              `;
@@ -198,7 +198,7 @@ export class SidebarManager {
              html += `
               <div class="tree-item file" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
                  <span class="file-icon">${IconFile}</span>
-                 <span>${item.title}</span>
+                 <span class="item-title">${item.title}</span>
               </div>
              `;
           }
@@ -402,7 +402,7 @@ export class SidebarManager {
         if (catId === 'canvas') derivedType = 'canvas';
         if (catId === 'erd') derivedType = 'erd';
 
-        const folderName = header.querySelector('span')?.textContent || 'Folder';
+        const folderName = header.querySelector('.item-title')?.textContent || 'Folder';
         const menuItems: ContextMenuItem[] = [
             { label: 'New File', icon: IconFilePlus, action: () => this.createNewNote(derivedType, folderId) },
             { label: 'New Folder', icon: IconFolderPlus, action: () => this.createNewFolder(derivedType, folderId) },
@@ -416,7 +416,7 @@ export class SidebarManager {
 
     private showNoteContextMenu(e: MouseEvent, item: HTMLElement): void {
         const noteId = item.getAttribute('data-id');
-        const noteName = item.querySelector('span')?.textContent || 'Note';
+        const noteName = item.querySelector('.item-title')?.textContent || 'Note';
         if (!noteId) return;
 
         const menuItems: ContextMenuItem[] = [

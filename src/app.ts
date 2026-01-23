@@ -9,6 +9,7 @@ import { Toast } from './components/Toast';
 import { SidebarManager } from './managers/SidebarManager';
 import { RightPaneManager } from './managers/RightPaneManager';
 import { EditorManager } from './managers/EditorManager';
+import { checkAndSeedData } from './lib/initialization';
 
 
 class App {
@@ -25,6 +26,7 @@ class App {
   }
 
   private async init(): Promise<void> {
+    await checkAndSeedData();
     await this.sidebarManager.init();
     this.editorManager.init();
     this.rightPaneManager.render();
