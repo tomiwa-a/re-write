@@ -387,7 +387,7 @@ export class SidebarManager {
                     await documentService.remove(id);
                 }
                 await this.loadData();
-                Toast.success('Deleted successfully');
+                Toast.error('Deleted successfully');
             }
         });
         modal.open();
