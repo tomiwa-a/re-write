@@ -6,6 +6,7 @@ import './styles/creation-modal.css';
 import './styles/editor.css';
 import { ShareModal } from './components/ShareModal';
 import { Toast } from './components/Toast';
+import { ConfirmationModal } from './components/ConfirmationModal';
 
 import { SidebarManager } from './managers/SidebarManager';
 import { RightPaneManager } from './managers/RightPaneManager';
@@ -141,7 +142,17 @@ class App {
           `;
           
           document.getElementById('logout-btn')?.addEventListener('click', () => {
-              this.authManager.signOut();
+              const modal = new ConfirmationModal({
+                  title: 'Log Out',
+                  message: 'Are you sure you want to log out?',
+                  confirmText: 'Log Out',
+                  cancelText: 'Cancel',
+                  isDanger: true,
+                  onConfirm: async () => {
+                      await this.authManager.signOut();
+                  }
+              });
+              modal.open();
           });
 
       } else {

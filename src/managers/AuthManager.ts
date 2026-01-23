@@ -33,9 +33,7 @@ export class AuthManager {
             this.unsubscribe();
         }
         
-        console.log("[Auth] Setting up user subscription...");
         this.unsubscribe = this.client.onUpdate(api.users.viewer, {}, (user) => {
-            console.log("[Auth] Viewer query result:", user);
             this.currentUser = user;
             this.isLoading = false;
             this.notify();
@@ -43,40 +41,29 @@ export class AuthManager {
     }
 
     private async handleAuthCallback(code: string): Promise<void> {
-        console.log("[Auth] Handling callback with code:", code.substring(0, 10) + "...");
         const verifier = localStorage.getItem("__convexAuthOAuthVerifier");
         if (!verifier) {
-            console.error("[Auth] No verifier found for code exchange");
             return;
         }
 
         try {
-            console.log("[Auth] Exchanging code for token...");
             const result: any = await this.client.action(api.auth.signIn, {
                 params: { code },
                 verifier
             });
-            console.log("[Auth] Token exchange result:", result);
             
             if (result?.tokens?.token) {
-                console.log("[Auth] Got token, setting auth...");
                 localStorage.setItem("__convexAuthJWT", result.tokens.token);
                 if (result.tokens.refreshToken) {
                     localStorage.setItem("__convexAuthRefreshToken", result.tokens.refreshToken);
                 }
                 this.client.setAuth(async () => result.tokens.token);
-                
-                console.log("[Auth] Auth set, waiting before resubscribing...");
-                await new Promise(resolve => setTimeout(resolve, 500));
-                this.setupUserSubscription();
-            } else {
-                console.error("[Auth] No token in result:", result);
             }
             
             window.history.replaceState({}, "", window.location.pathname);
             localStorage.removeItem("__convexAuthOAuthVerifier");
         } catch (error) {
-            console.error("[Auth] Token exchange failed:", error);
+            console.error("Token exchange failed:", error);
         }
     }
 
@@ -97,13 +84,10 @@ export class AuthManager {
             });
             
             if (result.redirect) {
-                // Store verifier for callback
                 if (result.verifier) {
                     localStorage.setItem("__convexAuthOAuthVerifier", result.verifier);
                 }
                 window.location.href = result.redirect;
-            } else {
-                 console.error("Sign in failed: No redirect URL returned", result);
             }
         } catch (error) {
             console.error("Sign in error:", error);
@@ -112,6 +96,8 @@ export class AuthManager {
 
     public async signOut(): Promise<void> {
         await this.client.action(api.auth.signOut, {});
+        localStorage.removeItem("__convexAuthJWT");
+        localStorage.removeItem("__convexAuthRefreshToken");
         this.currentUser = null;
         this.notify();
     }
