@@ -1,5 +1,5 @@
 import { db } from "./db";
-import type { Document, DocumentType } from "./types";
+import type { Document, DocumentType } from "../types/backend";
 
 function generateId(): string {
   return crypto.randomUUID();

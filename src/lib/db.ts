@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Folder, Document, SyncQueueItem } from "./types";
+import type { Folder, Document, SyncQueueItem } from "../types/backend";
 
 class ReWriteDB extends Dexie {
   folders!: EntityTable<Folder, "id">;
