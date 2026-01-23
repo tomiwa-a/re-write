@@ -14,6 +14,7 @@ import { FolderPlusIcon as IconFolderPlus } from '../assets/icons/folder-plus';
 import { CreationModal } from '../components/CreationModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DocumentType } from '../types/backend';
+import { AuthManager } from './AuthManager';
 
 
 const CURRENT_USER_ID = 'local-user';
@@ -21,9 +22,17 @@ const CURRENT_USER_ID = 'local-user';
 export class SidebarManager {
     private categories: Category[] = INITIAL_CATEGORIES;
     private expandedFolderIds = new Set<string>();
+    private onFileSelect?: (id: string) => void;
+    private authManager: AuthManager;
 
-    constructor() {
-        // Initialization handled by App
+    constructor(authManager: AuthManager, onFileSelect?: (id: string) => void) {
+        this.authManager = authManager;
+        this.onFileSelect = onFileSelect;
+        
+        // render on auth change
+        this.authManager.subscribe(() => {
+             this.loadData(); // Reload data for new user
+        });
     }
 
     public async loadData(): Promise<void> {
@@ -244,6 +253,18 @@ export class SidebarManager {
               const id = folder.getAttribute('data-id');
               if (id) this.toggleFolder(id);
           });
+        });
+
+        document.querySelectorAll('.tree-item.file').forEach(file => {
+            file.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = file.getAttribute('data-id');
+                if (id && this.onFileSelect) {
+                    document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+                    file.classList.add('active');
+                    this.onFileSelect(id);
+                }
+            });
         });
     }
 

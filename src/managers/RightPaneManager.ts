@@ -1,11 +1,18 @@
-import { ShareModal } from '../components/ShareModal';
+import { ClockIcon } from '../assets/icons/clock';
 import { CloudCheckIcon } from '../assets/icons/cloud';
 import { GlobeIcon } from '../assets/icons/globe';
-import { ClockIcon } from '../assets/icons/clock';
+import { ShareModal } from '../components/ShareModal';
+import { AuthManager } from './AuthManager';
 
 export class RightPaneManager {
-    constructor() {
-        // this.render();
+    private authManager: AuthManager;
+
+    constructor(authManager: AuthManager) {
+        this.authManager = authManager;
+        
+        this.authManager.subscribe(() => {
+            this.renderSyncStatus();
+        });
     }
 
     public render(): void {
@@ -16,20 +23,26 @@ export class RightPaneManager {
 
     private renderSyncStatus(): void {
         const syncCard = document.getElementById('sync-status-card');
+        const user = this.authManager.currentUser;
+        
         if (syncCard) {
+            const syncText = user ? 'Synced just now' : 'Local Only';
+            const connText = user ? 'Online' : 'Guest Mode';
+            const syncIconClass = user ? 'success' : 'neutral'; // Assume CSS supports neutral or default to simple style
+            
             syncCard.innerHTML = `
                 <div class="status-item">
-                    <div class="status-icon success">${CloudCheckIcon}</div>
+                    <div class="status-icon ${syncIconClass}">${CloudCheckIcon}</div>
                     <div class="status-info">
                         <span class="status-label">Sync Status</span>
-                        <span class="status-value">Synced just now</span>
+                        <span class="status-value">${syncText}</span>
                     </div>
                 </div>
                 <div class="status-item">
-                    <div class="status-icon success">${GlobeIcon}</div>
+                    <div class="status-icon ${syncIconClass}">${GlobeIcon}</div>
                     <div class="status-info">
                         <span class="status-label">Connection</span>
-                        <span class="status-value">Online</span>
+                        <span class="status-value">${connText}</span>
                     </div>
                 </div>
             `;
