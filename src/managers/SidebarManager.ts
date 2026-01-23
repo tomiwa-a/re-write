@@ -21,9 +21,10 @@ const CURRENT_USER_ID = 'local-user';
 export class SidebarManager {
     private categories: Category[] = INITIAL_CATEGORIES;
     private expandedFolderIds = new Set<string>();
+    private onFileSelect?: (id: string) => void;
 
-    constructor() {
-        // Initialization handled by App
+    constructor(onFileSelect?: (id: string) => void) {
+        this.onFileSelect = onFileSelect;
     }
 
     public async loadData(): Promise<void> {
@@ -244,6 +245,21 @@ export class SidebarManager {
               const id = folder.getAttribute('data-id');
               if (id) this.toggleFolder(id);
           });
+        });
+
+        document.querySelectorAll('.tree-item.file').forEach(file => {
+            file.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = file.getAttribute('data-id');
+                if (id && this.onFileSelect) {
+                    // Highlight logic?
+                    // Remove active from all
+                    document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+                    file.classList.add('active');
+                    
+                    this.onFileSelect(id);
+                }
+            });
         });
     }
 

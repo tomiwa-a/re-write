@@ -18,9 +18,9 @@ class App {
   private editorManager: EditorManager;
 
   constructor() {
-    this.sidebarManager = new SidebarManager();
-    this.rightPaneManager = new RightPaneManager();
     this.editorManager = new EditorManager();
+    this.sidebarManager = new SidebarManager((id) => this.editorManager.openDocument(id));
+    this.rightPaneManager = new RightPaneManager();
 
     void this.init();
   }
