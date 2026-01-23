@@ -1,0 +1,1 @@
+export const ERDIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="6" x="8" y="2" rx="2"/><path d="M12 8v4"/><path d="M12 12H7a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h5"/><path d="M12 12h5a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-5"/></svg>`;

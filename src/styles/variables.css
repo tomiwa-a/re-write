@@ -1,16 +1,17 @@
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-grid: #f0f0f0;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
+  --bg-primary: #FAF7F0; /* Cream background */
+  --bg-secondary: #F2EFE8; /* Slightly darker cream for sidebars */
+  --bg-paper: #ffffff; /* White paper */
+  --bg-grid: #e5e5e5;
+  --text-primary: #2c2c2c;
+  --text-secondary: #666666;
   --accent: #22c55e;
   --accent-hover: #16a34a;
-  --border: #e5e7eb;
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --radius: 8px;
-  --radius-lg: 12px;
-  --font-sans: 'Nunito', system-ui, -apple-system, sans-serif;
-  --transition: 150ms ease;
+  --border: rgba(0, 0, 0, 0.08);
+  --shadow: 0 4px 20px rgba(0,0,0,0.05); /* Soft shadow for paper */
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --transition: 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }

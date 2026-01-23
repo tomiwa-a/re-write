@@ -12,347 +12,117 @@
   </head>
   <body class="app-body">
     <div class="app-layout">
-      <aside class="sidebar">
+      <!-- Left Sidebar -->
+      <aside class="sidebar" id="sidebar-left">
+        <div class="sidebar-top-controls">
+          <button class="icon-btn" title="Toggle Fullscreen">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
+          <div class="user-avatar" id="user-avatar-btn">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
+            <div class="avatar-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </div>
+            <!-- Dropdown Menu -->
+            <div class="avatar-dropdown" id="avatar-dropdown">
+              <div class="dropdown-header">
+                <p class="user-name">Felix The Coder</p>
+                <p class="user-email">felix@rewrite.app</p>
+              </div>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile
+              </button>
+              <button class="dropdown-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                Settings
+              </button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item danger">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="sidebar-header">
           <a href="/" class="sidebar-logo">reWrite</a>
           <button class="sidebar-toggle" title="Toggle sidebar">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M11 17l-5-5 5-5"></path>
-              <path d="M18 17l-5-5 5-5"></path>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 17l-5-5 5-5"/>
+              <path d="M18 17l-5-5 5-5"/>
             </svg>
           </button>
         </div>
 
         <div class="sidebar-search">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
           </svg>
           <input type="text" placeholder="Search..." class="search-input" />
         </div>
 
-        <div class="sidebar-actions">
-          <button class="btn-new" id="new-note-btn">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M12 5v14"></path>
-              <path d="M5 12h14"></path>
+        <div class="sidebar-actions mini-only">
+          <button class="btn-new" id="new-note-btn-mini">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14"/>
+              <path d="M5 12h14"/>
             </svg>
-            New Note
-          </button>
-          <button class="btn-new-folder" id="new-folder-btn">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
-              ></path>
-            </svg>
-            New Folder
           </button>
         </div>
 
-        <nav class="sidebar-tree">
-          <div class="tree-section">
-            <div class="tree-header">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="m9 18 6-6-6-6"></path>
-              </svg>
-              <span>Notes</span>
-            </div>
-            <div class="tree-items">
-              <div class="tree-item active">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
-                  ></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-                <span>Getting Started</span>
-              </div>
-              <div class="tree-item">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
-                  ></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-                <span>My First Note</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tree-section">
-            <div class="tree-header">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="m9 18 6-6-6-6"></path>
-              </svg>
-              <span>Canvas</span>
-            </div>
-            <div class="tree-items">
-              <div class="tree-item">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="9" cy="9" r="2"></circle>
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-                </svg>
-                <span>Untitled Canvas</span>
-              </div>
-            </div>
-          </div>
+        <nav class="sidebar-tree" id="sidebar-tree-root">
+          <!-- Dynamic Content Rendered Here -->
         </nav>
       </aside>
 
+      <!-- Center Stage -->
       <main class="main-content">
-        <header class="toolbar">
-          <div class="toolbar-left">
-            <button class="toolbar-btn" title="Bold">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-              </svg>
-            </button>
-            <button class="toolbar-btn" title="Italic">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="19" x2="10" y1="4" y2="4"></line>
-                <line x1="14" x2="5" y1="20" y2="20"></line>
-                <line x1="15" x2="9" y1="4" y2="20"></line>
-              </svg>
-            </button>
-            <button class="toolbar-btn" title="Underline">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M6 4v6a6 6 0 0 0 12 0V4"></path>
-                <line x1="4" x2="20" y1="20" y2="20"></line>
-              </svg>
-            </button>
-            <span class="toolbar-divider"></span>
-            <button class="toolbar-btn" title="Heading 1">H1</button>
-            <button class="toolbar-btn" title="Heading 2">H2</button>
-            <button class="toolbar-btn" title="Heading 3">H3</button>
-            <span class="toolbar-divider"></span>
-            <button class="toolbar-btn" title="Bullet List">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="8" x2="21" y1="6" y2="6"></line>
-                <line x1="8" x2="21" y1="12" y2="12"></line>
-                <line x1="8" x2="21" y1="18" y2="18"></line>
-                <line x1="3" x2="3.01" y1="6" y2="6"></line>
-                <line x1="3" x2="3.01" y1="12" y2="12"></line>
-                <line x1="3" x2="3.01" y1="18" y2="18"></line>
-              </svg>
-            </button>
-            <button class="toolbar-btn" title="Numbered List">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="10" x2="21" y1="6" y2="6"></line>
-                <line x1="10" x2="21" y1="12" y2="12"></line>
-                <line x1="10" x2="21" y1="18" y2="18"></line>
-                <path d="M4 6h1v4"></path>
-                <path d="M4 10h2"></path>
-                <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
-              </svg>
-            </button>
-            <button class="toolbar-btn" title="Checklist">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2"></rect>
-                <path d="m9 12 2 2 4-4"></path>
-              </svg>
-            </button>
+        <div class="paper-sheet">
+          <header class="toolbar" id="editor-toolbar"></header>
+          <div class="editor-scroll-container">
+            <div class="editor" id="editor-content"></div>
           </div>
-          <div class="toolbar-right">
-            <button class="btn btn-secondary toolbar-action">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                <polyline points="16 6 12 2 8 6"></polyline>
-                <line x1="12" x2="12" y1="2" y2="15"></line>
-              </svg>
-              Share
-            </button>
-            <button class="btn btn-primary toolbar-action">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-                ></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Save
-            </button>
-            <button class="toolbar-btn toolbar-menu" title="More options">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="19" cy="12" r="1"></circle>
-                <circle cx="5" cy="12" r="1"></circle>
-              </svg>
-            </button>
-          </div>
-        </header>
-
-        <div class="editor-container">
-          <div
-            class="editor"
-            contenteditable="true"
-            data-placeholder="Start writing..."
-          ></div>
         </div>
       </main>
+
+      <!-- Right Sidebar -->
+      <aside class="sidebar-right">
+        <!-- Sync Status Section -->
+        <div class="sidebar-section">
+          <span class="sidebar-title">Status</span>
+          <div class="status-card" id="sync-status-card">
+            <!-- Populated by app.ts -->
+          </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Share Section -->
+        <div class="sidebar-section">
+          <span class="sidebar-title">Sharing</span>
+          <div class="share-card" id="share-card">
+            <!-- Populated by app.ts -->
+          </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Version History Section -->
+        <div class="sidebar-section">
+          <span class="sidebar-title">Version History</span>
+          <div class="history-list" id="history-list">
+            <!-- Populated by app.ts -->
+          </div>
+        </div>
+      </aside>
     </div>
 
     <script type="module" src="/src/app.ts"></script>

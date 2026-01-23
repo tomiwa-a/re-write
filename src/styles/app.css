@@ -1,378 +1,731 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import './variables.css';
 @import './reset.css';
 
+/* --- Main Layout --- */
 .app-body {
   height: 100vh;
   overflow: hidden;
   background-color: var(--bg-primary);
-  background-image: 
-    linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
-  background-size: 40px 40px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
 }
 
 .app-layout {
   display: flex;
   height: 100vh;
+  width: 100vw;
 }
 
+/* --- Left Sidebar --- */
 .sidebar {
-  width: 280px;
-  height: 100vh;
+  width: 260px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(229, 231, 235, 0.5);
   flex-shrink: 0;
+  z-index: 20; /* High z-index for dropdowns */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Removed overflow: hidden so dropdowns pop out */
+  position: relative;
+}
+
+.sidebar.collapsed {
+  width: 66px; /* Mini width */
+}
+
+/* Hide text elements when collapsed */
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .search-input,
+.sidebar.collapsed .btn-new span,
+.sidebar.collapsed .btn-new-folder,
+.sidebar.collapsed .tree-item span,
+.sidebar.collapsed .tree-header span,
+.sidebar.collapsed .sidebar-search svg,
+.sidebar.collapsed .icon-btn {
+  display: none;
+  opacity: 0;
+}
+
+/* Adjust layout for collapsed state */
+.sidebar.collapsed .sidebar-top-controls {
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+  align-items: center;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0 0 12px;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed .sidebar-search {
+  background: transparent;
+  padding: 0;
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-actions {
+  padding: 0 12px 16px;
+  align-items: center;
+}
+
+.sidebar.collapsed .btn-new {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%; /* Circle button */
+}
+
+/* Hide tree completely in mini mode or show icons? 
+   User said "just an add icon..., avatar, icon to open".
+   So hide tree and search probably. */
+.sidebar.collapsed .sidebar-tree, 
+.sidebar.collapsed .sidebar-search,
+.sidebar.collapsed .btn-new-folder {
+  display: none; 
+}
+
+/* --- Controls --- */
+.sidebar-top-controls {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.icon-btn:hover {
+  background: rgba(0,0,0,0.05);
+  color: var(--text-primary);
+}
+
+.user-avatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s;
+}
+
+.user-avatar:hover img {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.avatar-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid white;
+}
+
+.avatar-badge svg {
+  width: 8px;
+  height: 8px;
+}
+
+/* Dropdown Menu */
+.avatar-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  width: 220px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 8px;
+  display: none; /* Hidden by default */
+  z-index: 100;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.avatar-dropdown.show {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-header {
+  padding: 8px 12px;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.user-email {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.dropdown-item:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.dropdown-item.danger {
+  color: #ef4444;
+}
+
+.dropdown-item.danger:hover {
+  background: #fef2f2;
 }
 
 .sidebar-header {
+  padding: 0 20px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
 }
 
 .sidebar-logo {
-  font-size: 1.25rem;
   font-weight: 700;
+  font-size: 1.1rem;
   color: var(--text-primary);
   text-decoration: none;
+  letter-spacing: -0.02em;
 }
 
 .sidebar-toggle {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius);
+  background: none;
+  border: none;
   color: var(--text-secondary);
-  transition: all 200ms ease;
-}
-
-.sidebar-toggle:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-primary);
+  cursor: pointer;
 }
 
 .sidebar-search {
+  margin: 0 12px 16px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.04);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-}
-
-.sidebar-search svg {
   color: var(--text-secondary);
-  flex-shrink: 0;
 }
 
 .search-input {
-  flex: 1;
-  border: none;
   background: none;
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  color: var(--text-primary);
+  border: none;
   outline: none;
-}
-
-.search-input::placeholder {
-  color: var(--text-secondary);
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
 .sidebar-actions {
-  padding: 16px 20px;
+  padding: 0 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .btn-new {
+  background: var(--text-primary);
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
-  padding: 10px 16px;
-  background: rgba(34, 197, 94, 0.9);
-  color: white;
-  border-radius: var(--radius);
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 200ms ease;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .btn-new:hover {
-  background: rgba(22, 163, 74, 0.95);
   transform: translateY(-1px);
-}
-
-.btn-new:active {
-  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .btn-new-folder {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--text-primary);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  border-radius: var(--radius);
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 200ms ease;
-  margin-top: 8px;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .btn-new-folder:hover {
-  background: rgba(255, 255, 255, 0.95);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  background: rgba(0,0,0,0.03);
 }
 
-.btn-new-folder:active {
-  transform: translateY(0) scale(0.98);
-}
-
-
+/* VS Code-style Tree */
 .sidebar-tree {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 12px;
+  padding: 0;
 }
 
-.tree-section {
-  margin-bottom: 8px;
+/* Categories */
+.tree-category {
+  user-select: none;
 }
 
-.tree-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
-  cursor: pointer;
-  border-radius: var(--radius);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-  transition: all 150ms ease;
-}
-
-.tree-header:hover {
-  background: rgba(0, 0, 0, 0.03);
-  color: var(--text-primary);
-}
-
-.tree-items {
-  padding-left: 8px;
-}
-
-.tree-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  transition: all 150ms ease;
-}
-
-.tree-item:hover {
-  background: rgba(0, 0, 0, 0.03);
-  color: var(--text-primary);
-}
-
-.tree-item.active {
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--accent);
-}
-
-.tree-item.active svg {
-  color: var(--accent);
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.toolbar {
+.category-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  padding: 8px 16px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.7rem; /* Small like VS Code */
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: color 0.1s;
 }
 
-.toolbar-left,
-.toolbar-right {
+.category-header:hover {
+  color: var(--text-primary);
+}
+
+.header-content {
   display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-title {
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chevron-icon {
+  transition: transform 0.2s ease;
+  transform: rotate(-90deg); /* Default collapsed (pointing right) */
+}
+
+/* Assuming the SVG is a Down Arrow (V). 
+   If path is "m6 9 6 6 6-6", it is V shape (Standard Down).
+   So default (Collapsed) should be Right (-90deg).
+   Expanded should be Down (0deg).
+*/
+.tree-category.expanded .chevron-icon {
+  transform: rotate(0deg);
+}
+
+.category-items {
+  display: none;
+  padding-bottom: 8px;
+}
+
+.tree-category.expanded .category-items {
+  display: block;
+}
+
+.category-actions {
+  display: none; /* Hidden by default */
   align-items: center;
   gap: 4px;
 }
 
-.toolbar-right {
-  gap: 12px;
+.category-header:hover .category-actions,
+.category-header:focus-within .category-actions {
+  display: flex;
 }
 
-.toolbar-btn {
-  width: 36px;
-  height: 36px;
+.action-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 600;
-  transition: all 150ms ease;
 }
 
-.toolbar-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
+.action-btn:hover {
+  background: rgba(0,0,0,0.06);
   color: var(--text-primary);
 }
 
-.toolbar-btn:active {
-  transform: scale(0.95);
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+  width: 100%;
 }
 
-.toolbar-divider {
-  width: 1px;
-  height: 24px;
-  background: rgba(229, 231, 235, 0.5);
-  margin: 0 8px;
-}
-
-.toolbar-action {
+/* Tree Items */
+.tree-item {
+  padding: 6px 16px 6px 28px; /* Indented */
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  border-left: 2px solid transparent;
+  transition: all 0.1s;
 }
 
-.toolbar-action svg {
-  width: 16px;
-  height: 16px;
-}
-
-.toolbar-menu {
-  margin-left: 4px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: var(--radius);
-  font-weight: 500;
-  transition: all 200ms ease;
-  transform: translateY(0);
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-}
-
-.btn:active {
-  transform: translateY(0) scale(0.97);
-}
-
-.btn-primary {
-  background: rgba(34, 197, 94, 0.9);
-  backdrop-filter: blur(8px);
-  color: white;
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
-}
-
-.btn-primary:hover {
-  background: rgba(22, 163, 74, 0.95);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+.tree-item:hover {
+  background: rgba(0,0,0,0.03);
   color: var(--text-primary);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+.tree-item.active {
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--text-primary);
+  border-left-color: var(--accent);
 }
 
-.editor-container {
+.file-icon, .folder-icon {
+  font-size: 1rem;
+  width: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mini Mode Toggle */
+.sidebar:not(.collapsed) .mini-only {
+  display: none;
+}
+
+.sidebar.collapsed .mini-only {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+}
+
+/* --- Center Stage (Main Content) --- */
+.main-content {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* Center the paper */
+  background-color: var(--bg-primary);
+  position: relative;
+  overflow: hidden; /* No scroll on main area */
+}
+
+.paper-sheet {
+  background: var(--bg-paper);
+  width: 100%;
+  max-width: 850px;
+  height: 100%;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.editor-scroll-container {
   flex: 1;
   overflow-y: auto;
-  padding: 40px;
+  padding: 0 20px 40px; /* Padding inside the scroll area */
+  /* Scrollbar Styling */
+  scrollbar-width: thin;
+  scrollbar-color: #D1D1D1 transparent;
+}
+
+.editor-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+.editor-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.editor-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #D1D1D1;
+  border-radius: 20px;
 }
 
 .editor {
-  max-width: 800px;
-  margin: 0 auto;
   min-height: 100%;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  border-radius: var(--radius-lg);
-  font-size: 1rem;
-  line-height: 1.75;
+  outline: none;
+  /* Editor itself just fills the container */
+}
+
+
+/* --- Right Sidebar --- */
+.sidebar-right {
+  width: 240px;
+  background-color: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 20px;
+}
+
+.sidebar-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.prop-group {
+  margin-bottom: 20px;
+}
+
+.prop-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.prop-select, .prop-input {
+  width: 100%;
+  background: white;
+  border: 1px solid var(--border);
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
   color: var(--text-primary);
   outline: none;
 }
 
-.editor:empty:before {
-  content: attr(data-placeholder);
+.prop-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 28px;
+}
+
+.prop-select:focus, .prop-input:focus {
+  border-color: var(--text-secondary);
+}
+
+.prop-text {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 1100px) {
+  .sidebar-right {
+    display: none; /* Hide right sidebar on smaller screens initially */
+  }
+  .paper-sheet {
+    max-width: 100%;
+    box-shadow: none; /* Full width on tablet/small screen */
+  }
+}
+
+/* --- Right Pane Enhancements --- */
+.sidebar-section {
+  padding-bottom: 24px;
+  padding-top: 24px;
+}
+
+.sidebar-section:first-child {
+  padding-top: 0;
+}
+
+.status-card, .share-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.status-item:last-child {
+  margin-bottom: 0;
+}
+
+.status-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f3f4f6;
   color: var(--text-secondary);
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.editor:focus {
-  border-color: rgba(34, 197, 94, 0.3);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+.status-icon.success {
+  background: #dcfce7;
+  color: #16a34a;
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 100;
-    transform: translateX(-100%);
-    transition: transform 300ms ease;
-  }
-  
-  .sidebar.open {
-    transform: translateX(0);
-  }
-  
-  .toolbar-left {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .editor-container {
-    padding: 20px;
-  }
-  
-  .editor {
-    padding: 16px;
-  }
+.status-info {
+  display: flex;
+  flex-direction: column;
 }
+
+.status-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.share-info {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.share-status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.btn-share-large {
+  width: 100%;
+  background: var(--text-primary);
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-share-large:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.history-item:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+.history-item.active {
+  background: rgba(0,0,0,0.03);
+}
+
+.history-item.active .history-icon {
+  color: var(--accent);
+}
+
+.history-icon {
+    margin-top: 2px;
+    color: var(--text-secondary);
+}
+
+.history-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.history-author {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.history-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+

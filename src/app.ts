@@ -1,28 +1,114 @@
-/**
- * Main App Entry Point
- * Initializes UI components and event handlers
- */
-
 import './styles/app.css';
 import './styles/components.css';
 import './styles/share-modal.css';
+import './styles/editor.css';
 import { ShareModal } from './components/ShareModal';
 import { Toast } from './components/Toast';
 import { ContextMenu, ContextMenuItem } from './components/ContextMenu';
+import { createEditor } from './editor';
+import type { Editor } from '@tiptap/core';
+
+import { Category, SidebarItem } from './types/frontend';
+import { DUMMY_CATEGORIES } from './data/dummy';
+import { FileIcon } from './assets/icons/file';
+import { FolderIcon, FolderOpenIcon } from './assets/icons/folder';
+import { ChevronIcon } from './assets/icons/chevron';
+import { FilePlusIcon } from './assets/icons/file-plus';
+import { FolderPlusIcon } from './assets/icons/folder-plus';
+import { CloudCheckIcon } from './assets/icons/cloud';
+import { GlobeIcon } from './assets/icons/globe';
+import { ClockIcon } from './assets/icons/clock';
+
+
 
 class App {
+  private editor: Editor | null = null;
+  private categories: Category[] = DUMMY_CATEGORIES; // State
+
   constructor() {
     this.init();
   }
 
   private init(): void {
+    this.setupEditor();
     this.setupEventListeners();
-    this.setupSidebar();
-    this.setupToolbar();
+    this.setupSidebar(); // Context menu
+    this.setupAvatarDropdown();
+    this.renderSidebar(); 
+    this.renderRightPane();
+  }
+
+  private renderRightPane(): void {
+     // Sync Status
+     const syncCard = document.getElementById('sync-status-card');
+     if (syncCard) {
+         syncCard.innerHTML = `
+             <div class="status-item">
+                 <div class="status-icon success">${CloudCheckIcon}</div>
+                 <div class="status-info">
+                     <span class="status-label">Sync Status</span>
+                     <span class="status-value">Synced just now</span>
+                 </div>
+             </div>
+             <div class="status-item">
+                 <div class="status-icon success">${GlobeIcon}</div>
+                 <div class="status-info">
+                     <span class="status-label">Connection</span>
+                     <span class="status-value">Online</span>
+                 </div>
+             </div>
+         `;
+     }
+
+     // Share Card
+     const shareCard = document.getElementById('share-card');
+     if (shareCard) {
+         shareCard.innerHTML = `
+             <div class="share-info">
+                 <p class="share-status">Private Only you</p>
+             </div>
+             <button class="btn-share-large" id="right-pane-share-btn">
+                 Share Document
+             </button>
+         `;
+         
+         const btn = document.getElementById('right-pane-share-btn');
+         btn?.addEventListener('click', () => {
+             const modal = new ShareModal();
+             modal.open();
+         });
+     }
+
+     // History List
+     const historyList = document.getElementById('history-list');
+     if (historyList) {
+         const versions = [
+             { time: 'Just now', author: 'You', type: 'current' },
+             { time: '2 hours ago', author: 'You', type: 'save' },
+             { time: 'Yesterday', author: 'You', type: 'save' },
+         ];
+         
+         historyList.innerHTML = versions.map((v, i) => `
+             <div class="history-item ${v.type === 'current' ? 'active' : ''}">
+                 <div class="history-icon">${ClockIcon}</div>
+                 <div class="history-details">
+                     <span class="history-author">${v.author}</span>
+                     <span class="history-time">${v.time}</span>
+                 </div>
+             </div>
+         `).join('');
+     }
+  }
+
+  private setupEditor(): void {
+    const toolbarEl = document.getElementById('editor-toolbar') as HTMLElement;
+    const editorEl = document.getElementById('editor-content') as HTMLElement;
+    if (toolbarEl && editorEl) {
+      this.editor = createEditor(editorEl, toolbarEl);
+    }
   }
 
   private setupEventListeners(): void {
-    // Share button
     const shareBtn = document.querySelector('.toolbar-action:has(svg path[d*="M4 12v8"])') as HTMLButtonElement;
     if (shareBtn) {
       shareBtn.addEventListener('click', () => {
@@ -31,7 +117,6 @@ class App {
       });
     }
 
-    // Save button
     const saveBtn = document.querySelector('.toolbar-action:has(svg path[d*="M19 21H5"])') as HTMLButtonElement;
     if (saveBtn) {
       saveBtn.addEventListener('click', () => {
@@ -39,68 +124,90 @@ class App {
       });
     }
 
-    // New Note button
-    const newNoteBtn = document.getElementById('new-note-btn');
-    if (newNoteBtn) {
-      newNoteBtn.addEventListener('click', () => {
+    const miniNoteBtn = document.getElementById('new-note-btn-mini');
+    if (miniNoteBtn) {
+      miniNoteBtn.addEventListener('click', () => {
         this.createNewNote();
       });
     }
 
-    // New Folder button
-    const newFolderBtn = document.getElementById('new-folder-btn');
-    if (newFolderBtn) {
-      newFolderBtn.addEventListener('click', () => {
+    // Category Actions
+    document.querySelectorAll('.action-btn[title="New Note"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.createNewNote();
+      });
+    });
+
+    document.querySelectorAll('.action-btn[title="New Folder"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         this.createNewFolder();
       });
-    }
+    });
 
-    // Sidebar toggle
-    const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-      });
-    }
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    const sidebarTrigger = document.querySelector('.sidebar-trigger');
+
+    if (sidebar) {
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+        });
+      }
+
+      if (sidebarTrigger) {
+        sidebarTrigger.addEventListener('click', () => {
+    });
+  }}
+
+
   }
 
   private setupSidebar(): void {
-    // Use event delegation for context menus
     const sidebar = document.querySelector('.sidebar-tree');
     if (sidebar) {
       sidebar.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         const target = e.target as HTMLElement;
         
-        // Check if clicked on tree item
         const treeItem = target.closest('.tree-item');
         if (treeItem) {
-          this.showNoteContextMenu(e as MouseEvent, treeItem as HTMLElement);
+          if (treeItem.classList.contains('folder')) {
+             this.showFolderContextMenu(e as MouseEvent, treeItem as HTMLElement);
+          } else {
+             this.showNoteContextMenu(e as MouseEvent, treeItem as HTMLElement);
+          }
           return;
         }
         
-        // Check if clicked on tree header (folder)
         const treeHeader = target.closest('.tree-header');
         if (treeHeader) {
-          this.showFolderContextMenu(e as MouseEvent, treeHeader as HTMLElement);
+          this.showCategoryContextMenu(e as MouseEvent);
           return;
         }
       });
     }
   }
 
-  private setupToolbar(): void {
-    // Toolbar buttons
-    const toolbarBtns = document.querySelectorAll('.toolbar-btn');
-    toolbarBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const title = btn.getAttribute('title');
-        if (title) {
-          Toast.info(`${title} clicked`);
+
+  private setupAvatarDropdown(): void {
+    const avatarBtn = document.getElementById('user-avatar-btn');
+    const dropdown = document.getElementById('avatar-dropdown');
+
+    if (avatarBtn && dropdown) {
+      avatarBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!avatarBtn.contains(e.target as Node) && !dropdown.contains(e.target as Node)) {
+          dropdown.classList.remove('show');
         }
       });
-    });
+    }
   }
 
   private createNewNote(): void {
@@ -168,10 +275,39 @@ class App {
     ContextMenu.show(menuItems, e.clientX, e.clientY);
   }
 
+
+  private showCategoryContextMenu(e: MouseEvent): void {
+    const menuItems: ContextMenuItem[] = [
+      {
+        label: 'New File',
+        icon: FilePlusIcon,
+        action: () => this.createNewNote(),
+      },
+      {
+        label: 'New Folder',
+        icon: FolderPlusIcon,
+        action: () => this.createNewFolder(),
+      }
+    ];
+
+    ContextMenu.show(menuItems, e.clientX, e.clientY);
+  }
+
   private showFolderContextMenu(e: MouseEvent, header: HTMLElement): void {
     const folderName = header.querySelector('span')?.textContent || 'Folder';
 
     const menuItems: ContextMenuItem[] = [
+      {
+        label: 'New File',
+        icon: FilePlusIcon,
+        action: () => this.createNewNote(),
+      },
+      {
+        label: 'New Folder',
+        icon: FolderPlusIcon,
+        action: () => this.createNewFolder(),
+      },
+      { divider: true, label: '', action: () => {} },
       {
         label: 'Rename',
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
@@ -197,6 +333,134 @@ class App {
     ];
 
     ContextMenu.show(menuItems, e.clientX, e.clientY);
+  }
+  private renderSidebar(): void {
+    const root = document.getElementById('sidebar-tree-root');
+    if (!root) return;
+
+    let html = '';
+    
+    this.categories.forEach(category => {
+      const isExpanded = !category.collapsed;
+      const chevronRotation = isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+      const displayItems = isExpanded ? 'block' : 'none';
+
+      html += `
+        <div class="tree-category ${isExpanded ? 'expanded' : ''}" data-category-id="${category.id}">
+          <div class="category-header">
+            <div class="header-content">
+              <div style="display: flex; align-items: center; transform: ${chevronRotation}" class="chevron-container">
+                ${ChevronIcon}
+              </div>
+              <div style="display: flex; align-items: center; margin-right: 8px;">
+                 ${category.icon || ''}
+              </div>
+              <span class="category-title">${category.title}</span>
+            </div>
+            <div class="category-actions">
+              ${category.actions?.newFile ? `
+                <button title="New File" class="action-btn" data-action="new-file">
+                   ${FilePlusIcon}
+                </button>
+              ` : ''}
+              ${category.actions?.newFolder ? `
+                <button title="New Folder" class="action-btn" data-action="new-folder">
+                   ${FolderPlusIcon}
+                </button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="category-items" style="display: ${displayItems}">
+            ${this.renderItems(category.items)}
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
+      `;
+    });
+
+    root.innerHTML = html;
+    this.attachSidebarListeners();
+  }
+
+  private renderItems(items: SidebarItem[], level = 0): string {
+    let html = '';
+    items.forEach(item => {
+      const paddingLeft = 16 + (level * 12); 
+      
+      if (item.type === 'folder') {
+         const isExpanded = !item.collapsed;
+         // Folder logic
+         html += `
+          <div class="tree-item folder" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+             <span class="folder-icon">${isExpanded ? FolderOpenIcon : FolderIcon}</span>
+             <span>${item.title}</span>
+          </div>
+          ${isExpanded && item.children ? this.renderItems(item.children, level + 1) : ''}
+         `;
+      } else {
+         html += `
+          <div class="tree-item file" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+             <span class="file-icon">${FileIcon}</span>
+             <span>${item.title}</span>
+          </div>
+         `;
+      }
+    });
+    return html;
+  }
+
+  private attachSidebarListeners(): void {
+      document.querySelectorAll('.category-header').forEach(header => {
+          header.addEventListener('click', (e) => {
+              if ((e.target as HTMLElement).closest('.action-btn')) return;
+              const catId = header.closest('.tree-category')?.getAttribute('data-category-id');
+              if (catId) this.toggleCategory(catId);
+          });
+      });
+
+      document.querySelectorAll('.action-btn[data-action="new-file"]').forEach(btn => {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); this.createNewNote(); });
+      });
+      document.querySelectorAll('.action-btn[data-action="new-folder"]').forEach(btn => {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); this.createNewFolder(); });
+      });
+
+      document.querySelectorAll('.tree-item.folder').forEach(folder => {
+        folder.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = folder.getAttribute('data-id');
+            if (id) this.toggleFolder(id);
+        });
+      });
+  }
+
+  private toggleCategory(id: string): void {
+      const cat = this.categories.find(c => c.id === id);
+      if (cat) {
+          cat.collapsed = !cat.collapsed;
+          this.renderSidebar();
+      }
+  }
+
+  private toggleFolder(id: string): void {
+     this.categories.forEach(cat => {
+         const folder = this.findItem(cat.items, id);
+         if (folder) {
+             folder.collapsed = !folder.collapsed;
+             this.renderSidebar();
+         }
+     });
+  }
+
+  private findItem(items: SidebarItem[], id: string): SidebarItem | null {
+      for (const item of items) {
+          if (item.id === id) return item;
+          if (item.children) {
+              const found = this.findItem(item.children, id);
+              if (found) return found; 
+          }
+      }
+      return null;
   }
 }
 
