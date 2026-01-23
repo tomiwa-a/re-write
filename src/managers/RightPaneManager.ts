@@ -3,6 +3,7 @@ import { CloudCheckIcon } from '../assets/icons/cloud';
 import { GlobeIcon } from '../assets/icons/globe';
 import { ShareModal } from '../components/ShareModal';
 import { AuthManager } from './AuthManager';
+import { connectionManager } from './ConnectionManager';
 
 export class RightPaneManager {
     private authManager: AuthManager;
@@ -11,6 +12,10 @@ export class RightPaneManager {
         this.authManager = authManager;
         
         this.authManager.subscribe(() => {
+            this.renderSyncStatus();
+        });
+
+        connectionManager.subscribe(() => {
             this.renderSyncStatus();
         });
     }
@@ -24,11 +29,26 @@ export class RightPaneManager {
     private renderSyncStatus(): void {
         const syncCard = document.getElementById('sync-status-card');
         const user = this.authManager.currentUser;
+        const isOnline = connectionManager.isOnline;
         
         if (syncCard) {
-            const syncText = user ? 'Synced just now' : 'Local Only';
-            const connText = user ? 'Online' : 'Guest Mode';
-            const syncIconClass = user ? 'success' : 'neutral'; // Assume CSS supports neutral or default to simple style
+            let syncText: string;
+            let connText: string;
+            let syncIconClass: string;
+
+            if (!isOnline) {
+                syncText = 'Offline';
+                connText = 'Offline';
+                syncIconClass = 'warning';
+            } else if (user) {
+                syncText = 'Synced just now';
+                connText = 'Online';
+                syncIconClass = 'success';
+            } else {
+                syncText = 'Local Only';
+                connText = 'Online';
+                syncIconClass = 'neutral';
+            }
             
             syncCard.innerHTML = `
                 <div class="status-item">
