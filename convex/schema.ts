@@ -42,13 +42,4 @@ export default defineSchema({
   })
     .index("by_token", ["token"])
     .index("by_document", ["documentId"]),
-
-  users: defineTable({
-    externalId: v.string(),
-    name: v.string(),
-    email: v.string(),
-    avatarUrl: v.optional(v.string()),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  }).index("by_external_id", ["externalId"]),
 });
