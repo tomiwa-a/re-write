@@ -6,11 +6,9 @@ export class AuthManager {
     public currentUser: any = null;
     public isLoading: boolean = true;
     private subscribers: Set<() => void> = new Set();
-    private siteUrl: string;
 
     constructor(client: ConvexClient) {
         this.client = client;
-        this.siteUrl = import.meta.env.VITE_CONVEX_URL?.replace(".cloud", ".site") || "";
     }
 
     public async init(): Promise<void> {
@@ -31,12 +29,16 @@ export class AuthManager {
     }
 
     public async signIn(provider: "google" | "github"): Promise<void> {
-        const url = `${this.siteUrl}/api/auth/signin/${provider}`;
-        const form = document.createElement("form");
-        form.action = url;
-        form.method = "POST";
-        document.body.appendChild(form);
-        form.submit();
+        try {
+            const result: any = await this.client.action(api.auth.signIn, { provider });
+            if (result.redirect) {
+                window.location.href = result.redirect;
+            } else {
+                 console.error("Sign in failed: No redirect URL returned", result);
+            }
+        } catch (error) {
+            console.error("Sign in error:", error);
+        }
     }
 
     public async signOut(): Promise<void> {
