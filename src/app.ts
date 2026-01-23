@@ -8,8 +8,14 @@ import { ContextMenu, ContextMenuItem } from './components/ContextMenu';
 import { createEditor } from './editor';
 import type { Editor } from '@tiptap/core';
 
+import { Category, SidebarItem } from './types/frontend';
+import { DUMMY_CATEGORIES } from './data/dummy';
+
+
+
 class App {
   private editor: Editor | null = null;
+  private categories: Category[] = DUMMY_CATEGORIES; // State
 
   constructor() {
     this.init();
@@ -18,8 +24,9 @@ class App {
   private init(): void {
     this.setupEditor();
     this.setupEventListeners();
-    this.setupSidebar();
+    this.setupSidebar(); // Context menu
     this.setupAvatarDropdown();
+    this.renderSidebar(); // Initial rendering of sidebar (Fix: UI was empty)
   }
 
   private setupEditor(): void {
@@ -81,10 +88,10 @@ class App {
 
       if (sidebarTrigger) {
         sidebarTrigger.addEventListener('click', () => {
-          sidebar.classList.toggle('collapsed');
-        });
-      }
-    }
+    });
+  }}
+
+
   }
 
   private setupSidebar(): void {
@@ -106,17 +113,9 @@ class App {
           return;
         }
       });
-
-      // Category Toggling
-      const headers = document.querySelectorAll('.category-header');
-      headers.forEach(header => {
-        header.addEventListener('click', (e) => {
-          if ((e.target as HTMLElement).closest('.action-btn')) return;
-          header.parentElement?.classList.toggle('expanded');
-        });
-      });
     }
   }
+
 
   private setupAvatarDropdown(): void {
     const avatarBtn = document.getElementById('user-avatar-btn');
@@ -230,6 +229,130 @@ class App {
     ];
 
     ContextMenu.show(menuItems, e.clientX, e.clientY);
+  }
+  private renderSidebar(): void {
+    const root = document.getElementById('sidebar-tree-root');
+    if (!root) return;
+
+    let html = '';
+    
+    this.categories.forEach(category => {
+      const isExpanded = !category.collapsed;
+      const chevronRotation = isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+      const displayItems = isExpanded ? 'block' : 'none';
+
+      html += `
+        <div class="tree-category ${isExpanded ? 'expanded' : ''}" data-category-id="${category.id}">
+          <div class="category-header">
+            <div class="header-content">
+              <svg class="chevron-icon" style="transform: ${chevronRotation}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              ${category.icon ? `<svg class="category-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${category.icon}</svg>` : ''}
+              <span class="category-title">${category.title}</span>
+            </div>
+            <div class="category-actions">
+              ${category.actions?.newFile ? `
+                <button title="New File" class="action-btn" data-action="new-file">
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
+                </button>
+              ` : ''}
+              ${category.actions?.newFolder ? `
+                <button title="New Folder" class="action-btn" data-action="new-folder">
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="category-items" style="display: ${displayItems}">
+            ${this.renderItems(category.items)}
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
+      `;
+    });
+
+    root.innerHTML = html;
+    this.attachSidebarListeners();
+  }
+
+  private renderItems(items: SidebarItem[], level = 0): string {
+    let html = '';
+    items.forEach(item => {
+      const paddingLeft = 16 + (level * 12); 
+      
+      if (item.type === 'folder') {
+         const isExpanded = !item.collapsed;
+         // Folder logic
+         html += `
+          <div class="tree-item folder" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+             <span class="folder-icon">${isExpanded ? '📂' : '📁'}</span>
+             <span>${item.title}</span>
+          </div>
+          ${isExpanded && item.children ? this.renderItems(item.children, level + 1) : ''}
+         `;
+      } else {
+         html += `
+          <div class="tree-item file" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+             <span class="file-icon">📄</span>
+             <span>${item.title}</span>
+          </div>
+         `;
+      }
+    });
+    return html;
+  }
+
+  private attachSidebarListeners(): void {
+      document.querySelectorAll('.category-header').forEach(header => {
+          header.addEventListener('click', (e) => {
+              if ((e.target as HTMLElement).closest('.action-btn')) return;
+              const catId = header.closest('.tree-category')?.getAttribute('data-category-id');
+              if (catId) this.toggleCategory(catId);
+          });
+      });
+
+      document.querySelectorAll('.action-btn[data-action="new-file"]').forEach(btn => {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); this.createNewNote(); });
+      });
+      document.querySelectorAll('.action-btn[data-action="new-folder"]').forEach(btn => {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); this.createNewFolder(); });
+      });
+
+      document.querySelectorAll('.tree-item.folder').forEach(folder => {
+        folder.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = folder.getAttribute('data-id');
+            if (id) this.toggleFolder(id);
+        });
+      });
+  }
+
+  private toggleCategory(id: string): void {
+      const cat = this.categories.find(c => c.id === id);
+      if (cat) {
+          cat.collapsed = !cat.collapsed;
+          this.renderSidebar();
+      }
+  }
+
+  private toggleFolder(id: string): void {
+     this.categories.forEach(cat => {
+         const folder = this.findItem(cat.items, id);
+         if (folder) {
+             folder.collapsed = !folder.collapsed;
+             this.renderSidebar();
+         }
+     });
+  }
+
+  private findItem(items: SidebarItem[], id: string): SidebarItem | null {
+      for (const item of items) {
+          if (item.id === id) return item;
+          if (item.children) {
+              const found = this.findItem(item.children, id);
+              if (found) return found; 
+          }
+      }
+      return null;
   }
 }
 

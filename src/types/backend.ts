@@ -1,3 +1,4 @@
+
 export type DocumentType = "note" | "canvas" | "erd";
 export type ShareMode = "view" | "edit";
 
