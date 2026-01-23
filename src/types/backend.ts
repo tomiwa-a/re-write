@@ -5,6 +5,7 @@ export type ShareMode = "view" | "edit";
 export interface Folder {
   id: string;
   name: string;
+  type: DocumentType;
   parentId?: string;
   userId: string;
   createdAt: number;

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import type { Folder } from "./types";
+import type { Folder } from "../types/backend";
 
 function generateId(): string {
   return crypto.randomUUID();
