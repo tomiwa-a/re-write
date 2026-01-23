@@ -43,6 +43,7 @@ export const documentService = {
   },
 
   async getById(id: string): Promise<Document | undefined> {
+    // return await db.documents.where("id").equals(id).first();
     return await db.documents.get(id);
   },
 

@@ -33,11 +33,15 @@ class App {
   }
 
   private async init(): Promise<void> {
-    await checkAndSeedData();
+    const firstDocId = await checkAndSeedData();
     await this.authManager.init();
     await this.sidebarManager.init();
     this.editorManager.init();
     this.rightPaneManager.render();
+    
+    if (firstDocId) {
+      this.editorManager.openDocument(firstDocId);
+    }
     
     this.setupEventListeners();
     this.setupAvatarDropdown();

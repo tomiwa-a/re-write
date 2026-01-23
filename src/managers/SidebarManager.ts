@@ -22,6 +22,7 @@ const CURRENT_USER_ID = 'local-user';
 export class SidebarManager {
     private categories: Category[] = INITIAL_CATEGORIES;
     private expandedFolderIds = new Set<string>();
+    private activeFileId: string | null = null;
     private onFileSelect?: (id: string) => void;
     private authManager: AuthManager;
 
@@ -204,8 +205,9 @@ export class SidebarManager {
               ${isExpanded && item.children ? this.renderItems(item.children, level + 1) : ''}
              `;
           } else {
+             const isActive = item.id === this.activeFileId;
              html += `
-              <div class="tree-item file" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+              <div class="tree-item file ${isActive ? 'active' : ''}" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
                  <span class="file-icon">${IconFile}</span>
                  <span class="item-title">${item.title}</span>
               </div>
@@ -260,7 +262,8 @@ export class SidebarManager {
                 e.stopPropagation();
                 const id = file.getAttribute('data-id');
                 if (id && this.onFileSelect) {
-                    document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+                    this.activeFileId = id;
+                    document.querySelectorAll('.tree-item.file').forEach(el => el.classList.remove('active'));
                     file.classList.add('active');
                     this.onFileSelect(id);
                 }
@@ -332,7 +335,7 @@ export class SidebarManager {
             fileType: contextType,
             parentId: parentId,
             onConfirm: async (name, type) => {
-                await documentService.create({
+                const newDoc = await documentService.create({
                     title: name,
                     type: type,
                     userId: CURRENT_USER_ID,
@@ -341,7 +344,11 @@ export class SidebarManager {
                 if (parentId) {
                     this.expandedFolderIds.add(parentId);
                 }
+                this.activeFileId = newDoc.id;
                 await this.loadData();
+                if (this.onFileSelect) {
+                    this.onFileSelect(newDoc.id);
+                }
                 Toast.success(`Created ${type}: ${name}`);
             }
         });
