@@ -10,6 +10,10 @@ import type { Editor } from '@tiptap/core';
 
 import { Category, SidebarItem } from './types/frontend';
 import { DUMMY_CATEGORIES } from './data/dummy';
+import { FileIcon } from './assets/icons/file';
+import { FolderIcon, FolderOpenIcon } from './assets/icons/folder';
+import { ChevronIcon } from './assets/icons/chevron';
+import { PlusIcon } from './assets/icons/plus';
 
 
 
@@ -245,19 +249,23 @@ class App {
         <div class="tree-category ${isExpanded ? 'expanded' : ''}" data-category-id="${category.id}">
           <div class="category-header">
             <div class="header-content">
-              <svg class="chevron-icon" style="transform: ${chevronRotation}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              ${category.icon ? `<svg class="category-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${category.icon}</svg>` : ''}
+              <div style="display: flex; align-items: center; transform: ${chevronRotation}" class="chevron-container">
+                ${ChevronIcon}
+              </div>
+              <div style="display: flex; align-items: center; margin-right: 8px;">
+                 ${category.icon || ''}
+              </div>
               <span class="category-title">${category.title}</span>
             </div>
             <div class="category-actions">
               ${category.actions?.newFile ? `
                 <button title="New File" class="action-btn" data-action="new-file">
-                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
+                   ${PlusIcon}
                 </button>
               ` : ''}
               ${category.actions?.newFolder ? `
                 <button title="New Folder" class="action-btn" data-action="new-folder">
-                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+                   ${PlusIcon}
                 </button>
               ` : ''}
             </div>
@@ -284,7 +292,7 @@ class App {
          // Folder logic
          html += `
           <div class="tree-item folder" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
-             <span class="folder-icon">${isExpanded ? '📂' : '📁'}</span>
+             <span class="folder-icon">${isExpanded ? FolderOpenIcon : FolderIcon}</span>
              <span>${item.title}</span>
           </div>
           ${isExpanded && item.children ? this.renderItems(item.children, level + 1) : ''}
@@ -292,7 +300,7 @@ class App {
       } else {
          html += `
           <div class="tree-item file" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
-             <span class="file-icon">📄</span>
+             <span class="file-icon">${FileIcon}</span>
              <span>${item.title}</span>
           </div>
          `;
