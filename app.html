@@ -95,24 +95,31 @@
 
       <!-- Right Sidebar -->
       <aside class="sidebar-right">
-        <div class="sidebar-header">
-          <span class="sidebar-title">Page Settings</span>
+        <!-- Sync Status Section -->
+        <div class="sidebar-section">
+          <span class="sidebar-title">Status</span>
+          <div class="status-card" id="sync-status-card">
+            <!-- Populated by app.ts -->
+          </div>
         </div>
-        <div class="sidebar-content">
-          <div class="prop-group">
-            <label>Format</label>
-            <select class="prop-select">
-              <option>Normal Text</option>
-              <option>Code Block</option>
-            </select>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Share Section -->
+        <div class="sidebar-section">
+          <span class="sidebar-title">Sharing</span>
+          <div class="share-card" id="share-card">
+            <!-- Populated by app.ts -->
           </div>
-          <div class="prop-group">
-            <label>Tags</label>
-            <input type="text" placeholder="Add tags..." class="prop-input" />
-          </div>
-          <div class="prop-group">
-             <label>Info</label>
-             <p class="prop-text">Created: Just now</p>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Version History Section -->
+        <div class="sidebar-section">
+          <span class="sidebar-title">Version History</span>
+          <div class="history-list" id="history-list">
+            <!-- Populated by app.ts -->
           </div>
         </div>
       </aside>

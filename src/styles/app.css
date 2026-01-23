@@ -579,3 +579,139 @@
   }
 }
 
+/* --- Right Pane Enhancements --- */
+.sidebar-section {
+  padding-bottom: 24px;
+  padding-top: 24px;
+}
+
+.sidebar-section:first-child {
+  padding-top: 0;
+}
+
+.status-card, .share-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.status-item:last-child {
+  margin-bottom: 0;
+}
+
+.status-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.share-info {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.share-status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.btn-share-large {
+  width: 100%;
+  background: var(--text-primary);
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-share-large:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.history-item:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+.history-item.active {
+  background: rgba(0,0,0,0.03);
+}
+
+.history-item.active .history-icon {
+  color: var(--accent);
+}
+
+.history-icon {
+    margin-top: 2px;
+    color: var(--text-secondary);
+}
+
+.history-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.history-author {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.history-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
