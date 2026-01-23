@@ -13,7 +13,8 @@ import { DUMMY_CATEGORIES } from './data/dummy';
 import { FileIcon } from './assets/icons/file';
 import { FolderIcon, FolderOpenIcon } from './assets/icons/folder';
 import { ChevronIcon } from './assets/icons/chevron';
-import { PlusIcon } from './assets/icons/plus';
+import { FilePlusIcon } from './assets/icons/file-plus';
+import { FolderPlusIcon } from './assets/icons/folder-plus';
 
 
 
@@ -260,12 +261,12 @@ class App {
             <div class="category-actions">
               ${category.actions?.newFile ? `
                 <button title="New File" class="action-btn" data-action="new-file">
-                   ${PlusIcon}
+                   ${FilePlusIcon}
                 </button>
               ` : ''}
               ${category.actions?.newFolder ? `
                 <button title="New Folder" class="action-btn" data-action="new-folder">
-                   ${PlusIcon}
+                   ${FolderPlusIcon}
                 </button>
               ` : ''}
             </div>
