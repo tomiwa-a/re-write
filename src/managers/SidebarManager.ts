@@ -12,6 +12,7 @@ import { ChevronIcon as IconChevron } from '../assets/icons/chevron';
 import { FilePlusIcon as IconFilePlus } from '../assets/icons/file-plus';
 import { FolderPlusIcon as IconFolderPlus } from '../assets/icons/folder-plus';
 import { CreationModal } from '../components/CreationModal';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DocumentType } from '../types/backend';
 
 
@@ -19,6 +20,7 @@ const CURRENT_USER_ID = 'local-user';
 
 export class SidebarManager {
     private categories: Category[] = INITIAL_CATEGORIES;
+    private expandedFolderIds = new Set<string>();
 
     constructor() {
         // Initialization handled by App
@@ -54,7 +56,7 @@ export class SidebarManager {
                 type: 'folder',
                 parentId: folder.parentId,
                 children: [],
-                collapsed: true
+                collapsed: !this.expandedFolderIds.has(folder.id)
             };
             itemMap.set(folder.id, item);
         });
@@ -258,6 +260,11 @@ export class SidebarManager {
            const folder = this.findItem(cat.items, id);
            if (folder) {
                folder.collapsed = !folder.collapsed;
+               if (!folder.collapsed) {
+                   this.expandedFolderIds.add(id);
+               } else {
+                   this.expandedFolderIds.delete(id);
+               }
                this.renderSidebar();
            }
        });
@@ -287,6 +294,9 @@ export class SidebarManager {
                     userId: CURRENT_USER_ID,
                     parentId: parentId
                 });
+                if (parentId) {
+                    this.expandedFolderIds.add(parentId);
+                }
                 await this.loadData();
                 Toast.success(`Created ${type} folder`);
             }
@@ -307,6 +317,9 @@ export class SidebarManager {
                     userId: CURRENT_USER_ID,
                     folderId: parentId
                 });
+                if (parentId) {
+                    this.expandedFolderIds.add(parentId);
+                }
                 await this.loadData();
                 Toast.success(`Created ${type}: ${name}`);
             }
@@ -334,20 +347,22 @@ export class SidebarManager {
     }
 
     private async deleteItem(id: string, type: 'folder' | 'file', name: string): Promise<void> {
-        if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
-
-        try {
-            if (type === 'folder') {
-                await folderService.remove(id); // Recursive
-            } else {
-                await documentService.remove(id);
+        const modal = new ConfirmationModal({
+            title: `Delete ${type === 'folder' ? 'Folder' : 'File'}`,
+            message: `Are you sure you want to delete "${name}"? ${type === 'folder' ? 'This will permanently delete all contents.' : 'This action cannot be undone.'}`,
+            confirmText: 'Delete',
+            isDanger: true,
+            onConfirm: async () => {
+                if (type === 'folder') {
+                    await folderService.remove(id); 
+                } else {
+                    await documentService.remove(id);
+                }
+                await this.loadData();
+                Toast.success('Deleted successfully');
             }
-            await this.loadData();
-            Toast.success('Deleted successfully');
-        } catch (err) {
-            console.error(err);
-            Toast.error('Failed to delete');
-        }
+        });
+        modal.open();
     }
 
     // Context Menu Helpers

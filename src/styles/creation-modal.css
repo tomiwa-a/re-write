@@ -32,6 +32,45 @@
     to { transform: scale(1); opacity: 1; }
 }
 
+.btn-danger {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-text {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.btn-text:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-primary);
+}
+
 .creation-modal {
     max-width: 400px;
     width: 100%;

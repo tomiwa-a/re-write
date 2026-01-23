@@ -68,7 +68,14 @@ export const folderService = {
 
     const docs = await db.documents.where("folderId").equals(id).toArray();
     for (const doc of docs) {
-      await db.documents.update(doc.id, { folderId: undefined });
+      // Recursive delete documents
+      await db.documents.delete(doc.id);
+      await db.syncQueue.add({
+        entityType: "document",
+        entityId: doc.id,
+        action: "delete",
+        createdAt: Date.now(),
+      });
     }
 
     await db.folders.delete(id);
