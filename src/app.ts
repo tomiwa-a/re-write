@@ -4,12 +4,17 @@ import './styles/share-modal.css';
 import './styles/editor.css';
 import { ShareModal } from './components/ShareModal';
 import { Toast } from './components/Toast';
+import { folderService } from './lib/folders';
+import { documentService } from './lib/documents';
+import { Folder, Document } from './types/backend';
+
+const CURRENT_USER_ID = 'local-user';
 import { ContextMenu, ContextMenuItem } from './components/ContextMenu';
 import { createEditor } from './editor';
 import type { Editor } from '@tiptap/core';
 
 import { Category, SidebarItem } from './types/frontend';
-import { DUMMY_CATEGORIES } from './data/dummy';
+import { INITIAL_CATEGORIES } from './data/categories';
 import { FileIcon } from './assets/icons/file';
 import { FolderIcon, FolderOpenIcon } from './assets/icons/folder';
 import { ChevronIcon } from './assets/icons/chevron';
@@ -23,10 +28,58 @@ import { ClockIcon } from './assets/icons/clock';
 
 class App {
   private editor: Editor | null = null;
-  private categories: Category[] = DUMMY_CATEGORIES; // State
+  private categories: Category[] = INITIAL_CATEGORIES;
 
   constructor() {
     this.init();
+    this.loadData();
+  }
+
+  private async loadData(): Promise<void> {
+      try {
+          const folders = await folderService.getAll();
+          const documents: Document[] = [];
+
+          const notesCategory = this.categories.find(c => c.id === 'notes');
+          if (notesCategory) {
+              notesCategory.items = this.mapData(folders, documents);
+          }
+          this.renderSidebar();
+      } catch (error) {
+          console.error("Failed to load data:", error);
+          Toast.error("Failed to load folders");
+      }
+  }
+
+  private mapData(folders: Folder[], documents: Document[]): SidebarItem[] {
+      const itemMap = new Map<string, SidebarItem>();
+      const rootItems: SidebarItem[] = [];
+
+      // Process Folders
+      folders.forEach(folder => {
+          const item: SidebarItem = {
+              id: folder.id,
+              title: folder.name,
+              type: 'folder',
+              parentId: folder.parentId,
+              children: [],
+              collapsed: true
+          };
+          itemMap.set(folder.id, item);
+      });
+
+      // Build Tree
+      folders.forEach(folder => {
+          const item = itemMap.get(folder.id)!;
+          if (folder.parentId && itemMap.has(folder.parentId)) {
+              const parent = itemMap.get(folder.parentId)!;
+              parent.children = parent.children || [];
+              parent.children.push(item);
+          } else {
+              rootItems.push(item);
+          }
+      });
+      return rootItems;
   }
 
   private init(): void {
@@ -215,9 +268,21 @@ class App {
     // TODO: Implement actual note creation
   }
 
-  private createNewFolder(): void {
-    Toast.success('Creating new folder...');
-    // TODO: Implement actual folder creation
+  private async createNewFolder(): Promise<void> {
+    const name = prompt('Folder Name:', 'New Folder');
+    if (!name) return;
+
+    try {
+        await folderService.create({
+            name: name,
+            userId: CURRENT_USER_ID,
+        });
+        await this.loadData();
+        Toast.success('Folder created');
+    } catch (err) {
+        console.error(err);
+        Toast.error('Failed to create folder');
+    }
   }
 
   private showNoteContextMenu(e: MouseEvent, item: HTMLElement): void {
