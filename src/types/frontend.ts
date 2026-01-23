@@ -1,5 +1,5 @@
 
-export type SidebarItemType = 'note' | 'folder' | 'canvas' | 'code' | 'diagram';
+export type SidebarItemType = 'note' | 'folder' | 'canvas' | 'code' | 'diagram' | 'erd';
 
 export interface SidebarItem {
   id: string;

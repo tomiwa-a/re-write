@@ -5,7 +5,7 @@ import { ClockIcon } from '../assets/icons/clock';
 
 export class RightPaneManager {
     constructor() {
-        this.render();
+        // this.render();
     }
 
     public render(): void {

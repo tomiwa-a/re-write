@@ -1,6 +1,7 @@
 import './styles/app.css';
 import './styles/components.css';
 import './styles/share-modal.css';
+import './styles/creation-modal.css';
 import './styles/editor.css';
 import { ShareModal } from './components/ShareModal';
 import { Toast } from './components/Toast';
@@ -26,6 +27,7 @@ class App {
   private async init(): Promise<void> {
     await this.sidebarManager.init();
     this.editorManager.init();
+    this.rightPaneManager.render();
     
     this.setupEventListeners();
     this.setupAvatarDropdown();
