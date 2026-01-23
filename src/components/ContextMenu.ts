@@ -19,7 +19,7 @@ export class ContextMenu {
   constructor(items: ContextMenuItem[]) {
     this.items = items;
     this.menu = this.createMenu();
-    this.attachEventListeners();
+    setTimeout(() => this.attachEventListeners(), 0);
   }
 
   private createMenu(): HTMLElement {

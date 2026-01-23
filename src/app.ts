@@ -108,13 +108,17 @@ class App {
         
         const treeItem = target.closest('.tree-item');
         if (treeItem) {
-          this.showNoteContextMenu(e as MouseEvent, treeItem as HTMLElement);
+          if (treeItem.classList.contains('folder')) {
+             this.showFolderContextMenu(e as MouseEvent, treeItem as HTMLElement);
+          } else {
+             this.showNoteContextMenu(e as MouseEvent, treeItem as HTMLElement);
+          }
           return;
         }
         
         const treeHeader = target.closest('.tree-header');
         if (treeHeader) {
-          this.showFolderContextMenu(e as MouseEvent, treeHeader as HTMLElement);
+          this.showCategoryContextMenu(e as MouseEvent);
           return;
         }
       });
@@ -205,10 +209,39 @@ class App {
     ContextMenu.show(menuItems, e.clientX, e.clientY);
   }
 
+
+  private showCategoryContextMenu(e: MouseEvent): void {
+    const menuItems: ContextMenuItem[] = [
+      {
+        label: 'New File',
+        icon: FilePlusIcon,
+        action: () => this.createNewNote(),
+      },
+      {
+        label: 'New Folder',
+        icon: FolderPlusIcon,
+        action: () => this.createNewFolder(),
+      }
+    ];
+
+    ContextMenu.show(menuItems, e.clientX, e.clientY);
+  }
+
   private showFolderContextMenu(e: MouseEvent, header: HTMLElement): void {
     const folderName = header.querySelector('span')?.textContent || 'Folder';
 
     const menuItems: ContextMenuItem[] = [
+      {
+        label: 'New File',
+        icon: FilePlusIcon,
+        action: () => this.createNewNote(),
+      },
+      {
+        label: 'New Folder',
+        icon: FolderPlusIcon,
+        action: () => this.createNewFolder(),
+      },
+      { divider: true, label: '', action: () => {} },
       {
         label: 'Rename',
         icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
