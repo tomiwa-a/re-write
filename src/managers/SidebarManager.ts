@@ -325,7 +325,7 @@ export class SidebarManager {
                 await folderService.create({
                     name: name,
                     type: type,
-                    userId: CURRENT_USER_ID,
+                    userId: this.authManager.currentUser?._id || CURRENT_USER_ID,
                     parentId: parentId
                 });
                 if (parentId) {
@@ -348,7 +348,7 @@ export class SidebarManager {
                 const newDoc = await documentService.create({
                     title: name,
                     type: type,
-                    userId: CURRENT_USER_ID,
+                    userId: this.authManager.currentUser?._id || CURRENT_USER_ID,
                     folderId: parentId
                 });
                 if (parentId) {

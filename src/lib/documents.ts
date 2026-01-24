@@ -32,11 +32,13 @@ export const documentService = {
     
     // Only add to sync queue if NOT local only
     if (!doc.isLocalOnly) {
+      // Strip syncedAt and isLocalOnly before syncing
+      const { syncedAt, isLocalOnly, ...syncData } = doc as any;
       await db.syncQueue.add({
         entityType: "document",
         entityId: doc.id,
         action: "create",
-        data: doc,
+        data: syncData,
         createdAt: now,
       });
     }
@@ -82,11 +84,13 @@ export const documentService = {
 
     const updated = await db.documents.where("id").equals(id).first();
     if (updated && !updated.isLocalOnly) {
+      // Strip syncedAt and isLocalOnly before syncing
+      const { syncedAt, isLocalOnly, ...syncData } = updated as any;
       await db.syncQueue.add({
         entityType: "document",
         entityId: id,
         action: "update",
-        data: updated,
+        data: syncData,
         createdAt: now,
       });
     }
