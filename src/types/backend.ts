@@ -10,7 +10,6 @@ export interface Folder {
   userId: string;
   createdAt: number;
   updatedAt: number;
-  syncedAt?: number;
 }
 
 export interface Document {
@@ -23,7 +22,6 @@ export interface Document {
   createdAt: number;
   updatedAt: number;
   isArchived?: boolean;
-  syncedAt?: number;
   isLocalOnly?: boolean;
 }
 

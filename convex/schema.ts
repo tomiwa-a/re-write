@@ -11,7 +11,6 @@ export default defineSchema({
     userId: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
-    syncedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_parent", ["parentId"])
@@ -27,7 +26,6 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     isArchived: v.optional(v.boolean()),
-    syncedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_folder", ["folderId"])

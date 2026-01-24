@@ -52,9 +52,11 @@ export class SyncEngine {
   }
 
   setUserId(userId: string | null) {
+    console.log(`[SyncEngine] setUserId:`, userId);
     this.userId = userId;
     if (userId) {
       const isOnline = typeof navigator !== "undefined" && navigator.onLine !== undefined ? navigator.onLine : true;
+      console.log(`[SyncEngine] isOnline:`, isOnline);
       if (isOnline) {
         this.updateStatus('syncing');
         this.subscribe();
@@ -63,12 +65,16 @@ export class SyncEngine {
         this.updateStatus('offline');
       }
     } else {
+      console.log(`[SyncEngine] User logged out, clearing lastSync`);
       this.unsubscribe?.();
+      localStorage.removeItem("lastSync");
+      this._lastSync = null;
       this.updateStatus('offline'); 
     }
   }
 
   requestSync() {
+    console.log(`[SyncEngine] Manual sync requested`);
     this.push();
   }
 
@@ -79,40 +85,48 @@ export class SyncEngine {
 
       const count = await db.syncQueue.count();
       if (count > 0) {
+        console.log(`[SyncEngine] Heartbeat: found ${count} pending items`);
         this.push();
       }
     }, 30_000);
   }
 
   private subscribe() {
+    console.log(`[SyncEngine] Subscribing...`);
     this.unsubscribe?.();
-    if (!this.userId) return;
+    if (!this.userId) {
+      console.log(`[SyncEngine] No userId, aborting subscribe`);
+      return;
+    }
 
     const lastSync = parseInt(localStorage.getItem("lastSync") || "0");
+    console.log(`[SyncEngine] Subscribing with lastSync:`, lastSync);
     this.unsubscribe = this.client.onUpdate(
       api.sync.pull,
       { userId: this.userId, since: lastSync },
       async (result) => {
+        console.log(`[SyncEngine] Pull received:`, result);
         const { folders, documents, timestamp } = result;
 
         if (folders.length === 0 && documents.length === 0) {
+          console.log(`[SyncEngine] No changes to pull`);
           this.updateStatus('synced');
           this._lastSync = timestamp;
           this.notifyStatus();
           return;
         }
 
+        console.log(`[SyncEngine] Pulling ${folders.length} folders, ${documents.length} documents`);
         await db.transaction("rw", db.folders, db.documents, async () => {
           for (const folder of folders) {
             await db.folders.put({
               id: folder.id,
               name: folder.name,
-              type: folder.type as any, 
+              type: folder.type as any,
               parentId: folder.parentId,
               userId: folder.userId,
               createdAt: folder.createdAt,
               updatedAt: folder.updatedAt,
-              syncedAt: timestamp,
             });
           }
           for (const doc of documents) {
@@ -126,7 +140,6 @@ export class SyncEngine {
               createdAt: doc.createdAt,
               updatedAt: doc.updatedAt,
               isArchived: doc.isArchived,
-              syncedAt: timestamp,
             });
           }
         });
@@ -134,23 +147,36 @@ export class SyncEngine {
         localStorage.setItem("lastSync", timestamp.toString());
         this._lastSync = timestamp;
         this.updateStatus('synced');
+        console.log(`[SyncEngine] Pull complete, resubscribing`);
         this.subscribe();
       }
     );
   }
 
   async sync() {
+    console.log(`[SyncEngine] sync() called`);
     const isOnline = typeof navigator !== "undefined" && navigator.onLine !== undefined ? navigator.onLine : true;
     if (isOnline) {
       this.subscribe();
       await this.push();
+    } else {
+      console.log(`[SyncEngine] Offline, skipping sync`);
     }
   }
 
   private async push() {
-    if (this.isPushing || !this.userId) return;
+    console.log(`[SyncEngine] push() called`);
+    if (this.isPushing) {
+      console.log(`[SyncEngine] Already pushing, skipping`);
+      return;
+    }
+    if (!this.userId) {
+      console.log(`[SyncEngine] No userId, skipping push`);
+      return;
+    }
     
     const queue = await db.syncQueue.toArray();
+    console.log(`[SyncEngine] Queue size:`, queue.length);
     if (queue.length === 0) {
         if (this._status === 'syncing') this.updateStatus('synced');
         return;
@@ -158,6 +184,7 @@ export class SyncEngine {
 
     const isOnline = typeof navigator !== "undefined" && navigator.onLine !== undefined ? navigator.onLine : true;
     if (!isOnline) {
+        console.log(`[SyncEngine] Offline, aborting push`);
         this.updateStatus('offline');
         return;
     }
@@ -166,6 +193,7 @@ export class SyncEngine {
     this.updateStatus('syncing');
     
     try {
+      console.log(`[SyncEngine] Pushing ${queue.length} changes to server`);
       const changes = queue.map((item) => ({
         id: item.id!,
         entityType: item.entityType,
@@ -179,12 +207,13 @@ export class SyncEngine {
         userId: this.userId,
       });
 
+      console.log(`[SyncEngine] Push successful, clearing queue`);
       const ids = queue.map((q) => q.id as number);
       await db.syncQueue.bulkDelete(ids);
       this._lastSync = Date.now();
       this.updateStatus('synced');
     } catch (e) {
-      console.error(e);
+      console.error(`[SyncEngine] Push failed:`, e);
       this.updateStatus('error');
     } finally {
       this.isPushing = false;
