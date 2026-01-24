@@ -4,23 +4,51 @@ import type { ConvexClient } from "convex/browser";
 
 
 
+export type SyncStatus = 'syncing' | 'synced' | 'offline' | 'error';
+
 export class SyncEngine {
   private client: ConvexClient;
   private userId: string | null = null;
   private isPushing = false;
   private unsubscribe: (() => void) | null = null;
   private heartbeatId: number | any = null;
+  private statusSubscribers: Set<(status: SyncStatus, lastSync: number | null) => void> = new Set();
+  private _status: SyncStatus = 'offline';
+  private _lastSync: number | null = null;
 
   constructor(client: ConvexClient) {
     this.client = client;
+    this._lastSync = parseInt(localStorage.getItem("lastSync") || "0") || null;
     this.startHeartbeat();
+    
+    // Initial status check
+    this.updateStatus(typeof navigator !== "undefined" && navigator.onLine ? 'synced' : 'offline');
+
     window.addEventListener("online", () => {
+      this.updateStatus('syncing');
       this.subscribe();
       this.push();
     });
     window.addEventListener("offline", () => {
+      this.updateStatus('offline');
       this.unsubscribe?.();
     });
+  }
+
+  public subscribeToStatus(callback: (status: SyncStatus, lastSync: number | null) => void): () => void {
+    this.statusSubscribers.add(callback);
+    // Initial call
+    callback(this._status, this._lastSync);
+    return () => this.statusSubscribers.delete(callback);
+  }
+
+  private updateStatus(status: SyncStatus) {
+    this._status = status;
+    this.notifyStatus();
+  }
+
+  private notifyStatus() {
+    this.statusSubscribers.forEach(cb => cb(this._status, this._lastSync));
   }
 
   setUserId(userId: string | null) {
@@ -28,11 +56,15 @@ export class SyncEngine {
     if (userId) {
       const isOnline = typeof navigator !== "undefined" && navigator.onLine !== undefined ? navigator.onLine : true;
       if (isOnline) {
+        this.updateStatus('syncing');
         this.subscribe();
         this.push();
+      } else {
+        this.updateStatus('offline');
       }
     } else {
       this.unsubscribe?.();
+      this.updateStatus('offline'); // Or 'local-only' if we had that state
     }
   }
 
@@ -64,6 +96,9 @@ export class SyncEngine {
         const { folders, documents, timestamp } = result;
 
         if (folders.length === 0 && documents.length === 0) {
+          this.updateStatus('synced');
+          this._lastSync = timestamp;
+          this.notifyStatus();
           return;
         }
 
@@ -72,6 +107,7 @@ export class SyncEngine {
             await db.folders.put({
               id: folder.id,
               name: folder.name,
+              type: folder.type as any, // Add type cast or fix schema if needed
               parentId: folder.parentId,
               userId: folder.userId,
               createdAt: folder.createdAt,
@@ -96,6 +132,8 @@ export class SyncEngine {
         });
 
         localStorage.setItem("lastSync", timestamp.toString());
+        this._lastSync = timestamp;
+        this.updateStatus('synced');
         this.subscribe();
       }
     );
@@ -113,12 +151,19 @@ export class SyncEngine {
     if (this.isPushing || !this.userId) return;
     
     const queue = await db.syncQueue.toArray();
-    if (queue.length === 0) return;
+    if (queue.length === 0) {
+        if (this._status === 'syncing') this.updateStatus('synced');
+        return;
+    }
 
     const isOnline = typeof navigator !== "undefined" && navigator.onLine !== undefined ? navigator.onLine : true;
-    if (!isOnline) return;
+    if (!isOnline) {
+        this.updateStatus('offline');
+        return;
+    }
 
     this.isPushing = true;
+    this.updateStatus('syncing');
     
     try {
       const changes = queue.map((item) => ({
@@ -136,8 +181,10 @@ export class SyncEngine {
 
       const ids = queue.map((q) => q.id as number);
       await db.syncQueue.bulkDelete(ids);
+      this.updateStatus('synced');
     } catch (e) {
       console.error(e);
+      this.updateStatus('error');
     } finally {
       this.isPushing = false;
     }

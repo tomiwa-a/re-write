@@ -24,6 +24,7 @@ export interface Document {
   updatedAt: number;
   isArchived?: boolean;
   syncedAt?: number;
+  isLocalOnly?: boolean;
 }
 
 export interface SyncQueueItem {

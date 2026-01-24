@@ -12,6 +12,7 @@ export const documentService = {
     content?: unknown;
     folderId?: string;
     userId: string;
+    isLocalOnly?: boolean;
   }): Promise<Document> {
     const now = Date.now();
     const doc: Document = {
@@ -24,16 +25,21 @@ export const documentService = {
       createdAt: now,
       updatedAt: now,
       isArchived: false,
+      isLocalOnly: data.isLocalOnly,
     };
 
     await db.documents.add(doc);
-    await db.syncQueue.add({
-      entityType: "document",
-      entityId: doc.id,
-      action: "create",
-      data: doc,
-      createdAt: now,
-    });
+    
+    // Only add to sync queue if NOT local only
+    if (!doc.isLocalOnly) {
+      await db.syncQueue.add({
+        entityType: "document",
+        entityId: doc.id,
+        action: "create",
+        data: doc,
+        createdAt: now,
+      });
+    }
 
     return doc;
   },
@@ -43,8 +49,7 @@ export const documentService = {
   },
 
   async getById(id: string): Promise<Document | undefined> {
-    // return await db.documents.where("id").equals(id).first();
-    return await db.documents.get(id);
+    return await db.documents.where("id").equals(id).first();
   },
 
   async getByFolder(folderId?: string): Promise<Document[]> {
@@ -75,8 +80,8 @@ export const documentService = {
     const now = Date.now();
     await db.documents.update(id, { ...data, updatedAt: now });
 
-    const updated = await db.documents.get(id);
-    if (updated) {
+    const updated = await db.documents.where("id").equals(id).first();
+    if (updated && !updated.isLocalOnly) {
       await db.syncQueue.add({
         entityType: "document",
         entityId: id,
@@ -98,13 +103,17 @@ export const documentService = {
   },
 
   async remove(id: string): Promise<void> {
+    const doc = await db.documents.where("id").equals(id).first();
     await db.documents.delete(id);
-    await db.syncQueue.add({
-      entityType: "document",
-      entityId: id,
-      action: "delete",
-      createdAt: Date.now(),
-    });
+    
+    if (doc && !doc.isLocalOnly) {
+      await db.syncQueue.add({
+        entityType: "document",
+        entityId: id,
+        action: "delete",
+        createdAt: Date.now(),
+      });
+    }
   },
 
   async getArchived(): Promise<Document[]> {

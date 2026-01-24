@@ -13,6 +13,7 @@ export async function checkAndSeedData(): Promise<string | null> {
                 type: 'note',
                 content: GET_STARTED_CONTENT,
                 userId: CURRENT_USER_ID,
+                isLocalOnly: true,
             });
             console.log('Seeding complete.');
             return newDoc.id;

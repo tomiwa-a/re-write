@@ -13,6 +13,7 @@ import { RightPaneManager } from './managers/RightPaneManager';
 import { EditorManager } from './managers/EditorManager';
 import { AuthManager } from './managers/AuthManager';
 import { checkAndSeedData } from './lib/initialization';
+import { SyncEngine } from './lib/sync';
 
 
 class App {
@@ -21,13 +22,22 @@ class App {
   private editorManager: EditorManager;
   private authManager: AuthManager;
   private convexClient: ConvexClient;
+  private syncEngine: SyncEngine;
 
   constructor() {
     this.convexClient = new ConvexClient(import.meta.env.VITE_CONVEX_URL);
+    this.syncEngine = new SyncEngine(this.convexClient);
     this.editorManager = new EditorManager();
     this.authManager = new AuthManager(this.convexClient);
+    
+    // Connect Auth to Sync
+    this.authManager.subscribe(() => {
+        const userId = this.authManager.currentUser?.id || null;
+        this.syncEngine.setUserId(userId);
+    });
+
     this.sidebarManager = new SidebarManager(this.authManager, (id) => this.editorManager.openDocument(id));
-    this.rightPaneManager = new RightPaneManager(this.authManager);
+    this.rightPaneManager = new RightPaneManager(this.authManager, this.syncEngine);
 
     void this.init();
   }

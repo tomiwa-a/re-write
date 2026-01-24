@@ -3,19 +3,27 @@ import { CloudCheckIcon } from '../assets/icons/cloud';
 import { GlobeIcon } from '../assets/icons/globe';
 import { ShareModal } from '../components/ShareModal';
 import { AuthManager } from './AuthManager';
+import { SyncEngine, SyncStatus } from '../lib/sync';
 import { connectionManager } from './ConnectionManager';
 
 export class RightPaneManager {
     private authManager: AuthManager;
+    private syncEngine: SyncEngine;
+    private currentSyncStatus: SyncStatus = 'offline';
+    private lastSyncTime: number | null = null;
 
-    constructor(authManager: AuthManager) {
+    constructor(authManager: AuthManager, syncEngine: SyncEngine) {
         this.authManager = authManager;
+        this.syncEngine = syncEngine;
         
         this.authManager.subscribe(() => {
             this.renderSyncStatus();
         });
 
-        connectionManager.subscribe(() => {
+        // Use SyncEngine status instead of basic connection manager
+        this.syncEngine.subscribeToStatus((status, lastSync) => {
+            this.currentSyncStatus = status;
+            this.lastSyncTime = lastSync;
             this.renderSyncStatus();
         });
     }
@@ -35,19 +43,48 @@ export class RightPaneManager {
             let syncText: string;
             let connText: string;
             let syncIconClass: string;
+            let connIconClass: string;
 
+            // Connection Status (Bottom Row)
             if (!isOnline) {
-                syncText = 'Offline';
                 connText = 'Offline';
-                syncIconClass = 'warning';
-            } else if (user) {
-                syncText = 'Synced just now';
-                connText = 'Online';
-                syncIconClass = 'success';
+                connIconClass = 'warning';
             } else {
+                 connText = 'Online';
+                 connIconClass = 'success';
+            }
+
+            // Sync Status (Top Row)
+            if (!user) {
                 syncText = 'Local Only';
-                connText = 'Online';
                 syncIconClass = 'neutral';
+            } else {
+               switch (this.currentSyncStatus) {
+                   case 'syncing':
+                       syncText = 'Syncing...';
+                       syncIconClass = 'neutral';
+                       break;
+                   case 'synced':
+                       syncText = this.lastSyncTime ? `Synced ${this.timeAgo(this.lastSyncTime)}` : 'Synced';
+                       syncIconClass = 'success';
+                       break;
+                   case 'offline':
+                       // If we are online but sync status is offline, it typically means we haven't received the first update yet
+                       // Or we are reconnecting. The SyncEngine should eventually transition to 'synced' or 'syncing'.
+                       // If it stays here too long, it might mean the heartbeat hasn't fired or initial sync is pending.
+                       if (isOnline) {
+                           syncText = 'Waiting...';
+                           syncIconClass = 'neutral';
+                       } else {
+                           syncText = 'Pending (Offline)';
+                           syncIconClass = 'warning';
+                       }
+                       break;
+                   case 'error':
+                       syncText = 'Sync Error';
+                       syncIconClass = 'error';
+                       break;
+               }
             }
             
             syncCard.innerHTML = `
@@ -59,7 +96,7 @@ export class RightPaneManager {
                     </div>
                 </div>
                 <div class="status-item">
-                    <div class="status-icon ${syncIconClass}">${GlobeIcon}</div>
+                    <div class="status-icon ${connIconClass}">${GlobeIcon}</div>
                     <div class="status-info">
                         <span class="status-label">Connection</span>
                         <span class="status-value">${connText}</span>
@@ -67,6 +104,16 @@ export class RightPaneManager {
                 </div>
             `;
         }
+    }
+
+    private timeAgo(timestamp: number): string {
+        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        return 'recently';
     }
 
     private renderShareCard(): void {
