@@ -64,7 +64,7 @@ export class SyncEngine {
       }
     } else {
       this.unsubscribe?.();
-      this.updateStatus('offline'); // Or 'local-only' if we had that state
+      this.updateStatus('offline'); 
     }
   }
 
@@ -107,7 +107,7 @@ export class SyncEngine {
             await db.folders.put({
               id: folder.id,
               name: folder.name,
-              type: folder.type as any, // Add type cast or fix schema if needed
+              type: folder.type as any, 
               parentId: folder.parentId,
               userId: folder.userId,
               createdAt: folder.createdAt,
@@ -181,6 +181,7 @@ export class SyncEngine {
 
       const ids = queue.map((q) => q.id as number);
       await db.syncQueue.bulkDelete(ids);
+      this._lastSync = Date.now();
       this.updateStatus('synced');
     } catch (e) {
       console.error(e);

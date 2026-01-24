@@ -32,7 +32,7 @@ class App {
     
     // Connect Auth to Sync
     this.authManager.subscribe(() => {
-        const userId = this.authManager.currentUser?.id || null;
+        const userId = this.authManager.currentUser?._id || null;
         this.syncEngine.setUserId(userId);
     });
 
