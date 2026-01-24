@@ -33,10 +33,10 @@ class App {
     // Connect Auth to Sync
     this.authManager.subscribe(() => {
         const userId = this.authManager.currentUser?._id || null;
-        this.syncEngine.setUserId(userId);
+        void this.syncEngine.setUserId(userId);
     });
 
-    this.sidebarManager = new SidebarManager(this.authManager, (id) => this.editorManager.openDocument(id));
+    this.sidebarManager = new SidebarManager(this.authManager, this.syncEngine, (id) => this.editorManager.openDocument(id));
     this.rightPaneManager = new RightPaneManager(this.authManager, this.syncEngine);
 
     void this.init();

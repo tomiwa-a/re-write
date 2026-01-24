@@ -15,6 +15,7 @@ import { CreationModal } from '../components/CreationModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DocumentType } from '../types/backend';
 import { AuthManager } from './AuthManager';
+import { SyncEngine } from '../lib/sync';
 
 
 const CURRENT_USER_ID = 'local-user';
@@ -25,14 +26,23 @@ export class SidebarManager {
     private activeFileId: string | null = null;
     private onFileSelect?: (id: string) => void;
     private authManager: AuthManager;
+    private syncEngine: SyncEngine;
 
-    constructor(authManager: AuthManager, onFileSelect?: (id: string) => void) {
+    constructor(authManager: AuthManager, syncEngine: SyncEngine, onFileSelect?: (id: string) => void) {
         this.authManager = authManager;
+        this.syncEngine = syncEngine;
         this.onFileSelect = onFileSelect;
         
-        // render on auth change
+        // Render on auth change
         this.authManager.subscribe(() => {
-             this.loadData(); // Reload data for new user
+             this.loadData();
+        });
+        
+        // Refresh UI when sync completes
+        this.syncEngine.subscribeToStatus((status) => {
+            if (status === 'synced' || status === 'offline') {
+                this.loadData();
+            }
         });
     }
 
@@ -58,7 +68,7 @@ export class SidebarManager {
         const itemMap = new Map<string, SidebarItem>();
         const rootItems: SidebarItem[] = [];
   
-        // 1. Map Folders
+        // Map Folders
         folders.forEach(folder => {
             const item: SidebarItem = {
                 id: folder.id,
@@ -71,19 +81,19 @@ export class SidebarManager {
             itemMap.set(folder.id, item);
         });
 
-        // 2. Map Documents
+        // Map Documents
         documents.forEach(doc => {
             const item: SidebarItem = {
                 id: doc.id,
                 title: doc.title,
                 type: doc.type, 
                 parentId: doc.folderId,
-                children: [], // Files don't have children but interface needs it
+                children: [], 
             };
             itemMap.set(doc.id, item);
         });
   
-        // 3. Build Tree (Folders)
+        // Build Tree (Folders)
         folders.forEach(folder => {
             const item = itemMap.get(folder.id)!;
             if (folder.parentId && itemMap.has(folder.parentId)) {
@@ -95,7 +105,7 @@ export class SidebarManager {
             }
         });
 
-        // 4. Build Tree (Documents)
+        // Build Tree (Documents)
         documents.forEach(doc => {
              const item = itemMap.get(doc.id)!;
              if (doc.folderId && itemMap.has(doc.folderId)) {

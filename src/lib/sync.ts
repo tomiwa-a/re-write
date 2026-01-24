@@ -51,7 +51,7 @@ export class SyncEngine {
     this.statusSubscribers.forEach(cb => cb(this._status, this._lastSync));
   }
 
-  setUserId(userId: string | null) {
+  async setUserId(userId: string | null) {
     console.log(`[SyncEngine] setUserId:`, userId);
     this.userId = userId;
     if (userId) {
@@ -65,10 +65,14 @@ export class SyncEngine {
         this.updateStatus('offline');
       }
     } else {
-      console.log(`[SyncEngine] User logged out, clearing lastSync`);
+      console.log(`[SyncEngine] User logged out, clearing lastSync and user data`);
       this.unsubscribe?.();
       localStorage.removeItem("lastSync");
       this._lastSync = null;
+      
+      // Clear all user-specific data (keep only local-user data)
+      await this.clearUserData();
+      
       this.updateStatus('offline'); 
     }
   }
@@ -217,6 +221,41 @@ export class SyncEngine {
       this.updateStatus('error');
     } finally {
       this.isPushing = false;
+    }
+  }
+
+  private async clearUserData() {
+    try {
+      console.log(`[SyncEngine] Clearing user-specific data...`);
+      
+      // Delete all documents not belonging to 'local-user'
+      const docsToDelete = await db.documents
+        .filter(doc => doc.userId !== 'local-user')
+        .toArray();
+      
+      if (docsToDelete.length > 0) {
+        const docIds = docsToDelete.map(d => d.id);
+        await db.documents.bulkDelete(docIds);
+        console.log(`[SyncEngine] Deleted ${docsToDelete.length} user documents`);
+      }
+      
+      // Delete all folders not belonging to 'local-user'
+      const foldersToDelete = await db.folders
+        .filter(folder => folder.userId !== 'local-user')
+        .toArray();
+      
+      if (foldersToDelete.length > 0) {
+        const folderIds = foldersToDelete.map(f => f.id);
+        await db.folders.bulkDelete(folderIds);
+        console.log(`[SyncEngine] Deleted ${foldersToDelete.length} user folders`);
+      }
+      
+      // Clear the entire sync queue
+      await db.syncQueue.clear();
+      console.log(`[SyncEngine] Cleared sync queue`);
+      
+    } catch (error) {
+      console.error(`[SyncEngine] Error clearing user data:`, error);
     }
   }
 }
