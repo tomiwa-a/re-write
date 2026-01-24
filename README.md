@@ -43,18 +43,18 @@ reWrite combines rich note-taking with a free-draw canvas similar to draw.io. Wo
 
 ### Phase 1: MVP
 
-- [ ] Project setup with Vite + TypeScript
-- [ ] Basic note editor with Tiptap
+- [x] Project setup with Vite + TypeScript
+- [x] Basic note editor with Tiptap
 - [ ] Free-draw canvas with basic shapes and tools
-- [ ] IndexedDB storage implementation
-- [ ] CRUD operations for notes and drawings
+- [x] IndexedDB storage implementation
+- [x] CRUD operations for notes and drawings
 - [ ] Export/Import as JSON files
-- [ ] Responsive UI design
+- [x] Responsive UI design
 
 ### Phase 2: Sharing & Collaboration
 
-- [ ] Convex backend integration
-- [ ] User authentication (optional)
+- [x] Convex backend integration
+- [x] User authentication (optional)
 - [ ] Generate shareable read-only links
 - [ ] Upload snapshots for sharing
 - [ ] Multi-device sync for logged-in users

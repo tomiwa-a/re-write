@@ -15,6 +15,7 @@ import { CreationModal } from '../components/CreationModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DocumentType } from '../types/backend';
 import { AuthManager } from './AuthManager';
+import { SyncEngine } from '../lib/sync';
 
 
 const CURRENT_USER_ID = 'local-user';
@@ -22,16 +23,26 @@ const CURRENT_USER_ID = 'local-user';
 export class SidebarManager {
     private categories: Category[] = INITIAL_CATEGORIES;
     private expandedFolderIds = new Set<string>();
+    private activeFileId: string | null = null;
     private onFileSelect?: (id: string) => void;
     private authManager: AuthManager;
+    private syncEngine: SyncEngine;
 
-    constructor(authManager: AuthManager, onFileSelect?: (id: string) => void) {
+    constructor(authManager: AuthManager, syncEngine: SyncEngine, onFileSelect?: (id: string) => void) {
         this.authManager = authManager;
+        this.syncEngine = syncEngine;
         this.onFileSelect = onFileSelect;
         
-        // render on auth change
+        // Render on auth change
         this.authManager.subscribe(() => {
-             this.loadData(); // Reload data for new user
+             this.loadData();
+        });
+        
+        // Refresh UI when sync completes
+        this.syncEngine.subscribeToStatus((status) => {
+            if (status === 'synced' || status === 'offline') {
+                this.loadData();
+            }
         });
     }
 
@@ -57,7 +68,7 @@ export class SidebarManager {
         const itemMap = new Map<string, SidebarItem>();
         const rootItems: SidebarItem[] = [];
   
-        // 1. Map Folders
+        // Map Folders
         folders.forEach(folder => {
             const item: SidebarItem = {
                 id: folder.id,
@@ -70,19 +81,19 @@ export class SidebarManager {
             itemMap.set(folder.id, item);
         });
 
-        // 2. Map Documents
+        // Map Documents
         documents.forEach(doc => {
             const item: SidebarItem = {
                 id: doc.id,
                 title: doc.title,
                 type: doc.type, 
                 parentId: doc.folderId,
-                children: [], // Files don't have children but interface needs it
+                children: [], 
             };
             itemMap.set(doc.id, item);
         });
   
-        // 3. Build Tree (Folders)
+        // Build Tree (Folders)
         folders.forEach(folder => {
             const item = itemMap.get(folder.id)!;
             if (folder.parentId && itemMap.has(folder.parentId)) {
@@ -94,7 +105,7 @@ export class SidebarManager {
             }
         });
 
-        // 4. Build Tree (Documents)
+        // Build Tree (Documents)
         documents.forEach(doc => {
              const item = itemMap.get(doc.id)!;
              if (doc.folderId && itemMap.has(doc.folderId)) {
@@ -204,8 +215,9 @@ export class SidebarManager {
               ${isExpanded && item.children ? this.renderItems(item.children, level + 1) : ''}
              `;
           } else {
+             const isActive = item.id === this.activeFileId;
              html += `
-              <div class="tree-item file" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+              <div class="tree-item file ${isActive ? 'active' : ''}" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
                  <span class="file-icon">${IconFile}</span>
                  <span class="item-title">${item.title}</span>
               </div>
@@ -260,7 +272,8 @@ export class SidebarManager {
                 e.stopPropagation();
                 const id = file.getAttribute('data-id');
                 if (id && this.onFileSelect) {
-                    document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+                    this.activeFileId = id;
+                    document.querySelectorAll('.tree-item.file').forEach(el => el.classList.remove('active'));
                     file.classList.add('active');
                     this.onFileSelect(id);
                 }
@@ -312,7 +325,7 @@ export class SidebarManager {
                 await folderService.create({
                     name: name,
                     type: type,
-                    userId: CURRENT_USER_ID,
+                    userId: this.authManager.currentUser?._id || CURRENT_USER_ID,
                     parentId: parentId
                 });
                 if (parentId) {
@@ -332,16 +345,20 @@ export class SidebarManager {
             fileType: contextType,
             parentId: parentId,
             onConfirm: async (name, type) => {
-                await documentService.create({
+                const newDoc = await documentService.create({
                     title: name,
                     type: type,
-                    userId: CURRENT_USER_ID,
+                    userId: this.authManager.currentUser?._id || CURRENT_USER_ID,
                     folderId: parentId
                 });
                 if (parentId) {
                     this.expandedFolderIds.add(parentId);
                 }
+                this.activeFileId = newDoc.id;
                 await this.loadData();
+                if (this.onFileSelect) {
+                    this.onFileSelect(newDoc.id);
+                }
                 Toast.success(`Created ${type}: ${name}`);
             }
         });
@@ -380,7 +397,7 @@ export class SidebarManager {
                     await documentService.remove(id);
                 }
                 await this.loadData();
-                Toast.success('Deleted successfully');
+                Toast.error('Deleted successfully');
             }
         });
         modal.open();

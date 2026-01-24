@@ -13,6 +13,7 @@ import { RightPaneManager } from './managers/RightPaneManager';
 import { EditorManager } from './managers/EditorManager';
 import { AuthManager } from './managers/AuthManager';
 import { checkAndSeedData } from './lib/initialization';
+import { SyncEngine } from './lib/sync';
 
 
 class App {
@@ -21,23 +22,36 @@ class App {
   private editorManager: EditorManager;
   private authManager: AuthManager;
   private convexClient: ConvexClient;
+  private syncEngine: SyncEngine;
 
   constructor() {
     this.convexClient = new ConvexClient(import.meta.env.VITE_CONVEX_URL);
+    this.syncEngine = new SyncEngine(this.convexClient);
     this.editorManager = new EditorManager();
     this.authManager = new AuthManager(this.convexClient);
-    this.sidebarManager = new SidebarManager(this.authManager, (id) => this.editorManager.openDocument(id));
-    this.rightPaneManager = new RightPaneManager(this.authManager);
+    
+    // Connect Auth to Sync
+    this.authManager.subscribe(() => {
+        const userId = this.authManager.currentUser?._id || null;
+        void this.syncEngine.setUserId(userId);
+    });
+
+    this.sidebarManager = new SidebarManager(this.authManager, this.syncEngine, (id) => this.editorManager.openDocument(id));
+    this.rightPaneManager = new RightPaneManager(this.authManager, this.syncEngine);
 
     void this.init();
   }
 
   private async init(): Promise<void> {
-    await checkAndSeedData();
+    const firstDocId = await checkAndSeedData();
     await this.authManager.init();
     await this.sidebarManager.init();
     this.editorManager.init();
     this.rightPaneManager.render();
+    
+    if (firstDocId) {
+      this.editorManager.openDocument(firstDocId);
+    }
     
     this.setupEventListeners();
     this.setupAvatarDropdown();

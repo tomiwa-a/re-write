@@ -12,6 +12,7 @@ import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import Blockquote from "@tiptap/extension-blockquote";
 import Code from "@tiptap/extension-code";
+import CodeBlock from "@tiptap/extension-code-block";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
@@ -42,6 +43,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
       ListItem,
       Blockquote,
       Code,
+      CodeBlock,
       Link.configure({ openOnClick: false }),
       Highlight,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
