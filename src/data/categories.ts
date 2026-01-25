@@ -15,6 +15,6 @@ export const INITIAL_CATEGORIES: Category[] = [
         icon: NotesIcon,
         actions: { newFile: true, newFolder: true }
     },
-    { id: 'canvas', title: 'Canvas', type: 'category', collapsed: true, items: [], icon: CanvasIcon },
+    { id: 'canvas', title: 'Canvas', type: 'category', collapsed: true, items: [], icon: CanvasIcon, actions: { newFile: true, newFolder: true } },
     { id: 'erd', title: 'Relationships', type: 'category', collapsed: true, items: [], icon: ERDIcon },
 ];

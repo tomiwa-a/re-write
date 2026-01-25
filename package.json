@@ -36,8 +36,11 @@
     "@tiptap/extension-underline": "^3.15.3",
     "@tiptap/pm": "^3.15.3",
     "@tiptap/starter-kit": "^3.15.3",
+    "@tldraw/tldraw": "^4.3.0",
     "convex": "^1.31.5",
     "dexie": "^4.2.1",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   }
 }
