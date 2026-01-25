@@ -16,14 +16,11 @@ export const folderService = {
     };
 
     await db.folders.add(folder);
-    
-    // Strip syncedAt and type before syncing (type is local-only for UI organization)
-    const { syncedAt, type, ...syncData } = folder as any;
     await db.syncQueue.add({
       entityType: "folder",
       entityId: folder.id,
       action: "create",
-      data: syncData,
+      data: folder,
       createdAt: now,
     });
 
