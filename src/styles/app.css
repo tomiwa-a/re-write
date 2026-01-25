@@ -2,6 +2,10 @@
 @import './variables.css';
 @import './reset.css';
 
+.mobile-only {
+  display: none !important;
+}
+
 /* --- Main Layout --- */
 .app-body {
   height: 100vh;
@@ -83,13 +87,50 @@
   border-radius: 50%; /* Circle button */
 }
 
-/* Hide tree completely in mini mode or show icons? 
-   User said "just an add icon..., avatar, icon to open".
-   So hide tree and search probably. */
-.sidebar.collapsed .sidebar-tree, 
+/* Hide search and new folder btn in mini mode, but show tree for icons */
 .sidebar.collapsed .sidebar-search,
 .sidebar.collapsed .btn-new-folder {
   display: none; 
+}
+
+.sidebar.collapsed .sidebar-tree {
+  display: block;
+  margin-top: 10px;
+}
+
+/* Hide tree details when collapsed */
+.sidebar.collapsed .category-actions,
+.sidebar.collapsed .chevron-container,
+.sidebar.collapsed .category-title,
+.sidebar.collapsed .category-items,
+.sidebar.collapsed .tree-item,
+.sidebar.collapsed .sidebar-divider,
+.sidebar.collapsed .empty-category-hint {
+  display: none !important;
+}
+
+/* Center category icons */
+.sidebar.collapsed .category-header {
+  padding: 12px 0;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sidebar.collapsed .header-content {
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar.collapsed .category-icon-container {
+  margin-right: 0 !important;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar.collapsed .category-header:hover .category-icon-container {
+  color: var(--text-primary);
 }
 
 /* --- Controls --- */
@@ -182,11 +223,6 @@
 
 .avatar-dropdown.show {
   display: block;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .dropdown-header {
@@ -780,3 +816,138 @@
     color: var(--text-secondary);
 }
 
+/* ========================================
+   Mobile Responsiveness
+   ======================================== */
+
+/* Sidebar Backdrop */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+  opacity: 1;
+}
+
+/* Mobile Styles (≤768px) */
+/* Mobile/Tablet Styles (≤1024px) */
+@media (max-width: 1024px) {
+  /* Sidebar behaves like desktop (pushes content), but starts collapsed via JS */
+  /* No special fixed/overlay rules needed as we reverted to standard behavior */
+  
+  /* Hide right sidebar by default on smaller screens */
+  .sidebar-right {
+    display: none;
+  }
+
+  /* Show toggle button when right sidebar is hidden */
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  /* Right Sidebar - Bottom Sheet on Mobile */
+  /* User wants right pane to work as "how it works"? 
+     Actually user said "remove code that tries making side panel responsive... take it back to how it works"
+     BUT "only thing is it should automatically collapse".
+     
+     Wait, for the RIGHT pane, user said "the moment the right panel gets hidden the info button should be visible."
+     And "I can also see the info icon... make it standout".
+     
+     If I revert right pane bottom sheet, it will push content on mobile? 
+     Desktop right pane pushes content. On mobile that squishes editor.
+     User probably liked the bottom sheet for right pane, or wants it to overlay?
+     "take it back to how it works" referred to the LEFT side panel ("remove code that tries making the side panel responsive").
+     
+     So I will revert LEFT sidebar to standard.
+     But keep RIGHT sidebar as Bottom Sheet? Or Overlay?
+     The user didn't explicitly complain about the bottom sheet, but "take it back" might apply to everything.
+     However, standard right pane on mobile (pushing) is bad.
+     I'll keep the bottom sheet for right pane as it's a good mobile pattern, unless user specifically hates it.
+     Let's assume "side panel" meant the Left Sidebar which caused the squishing.
+  */
+
+  /* Right Sidebar - Bottom Sheet (Keep this for usability unless asked to revert) */
+  .sidebar-right {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60vh;
+    width: 100%;
+    z-index: 1002;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    background: white;
+    transform: translateY(101%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+  }
+
+  body.right-pane-open .sidebar-right {
+    transform: translateY(0);
+  }
+
+  body.right-pane-open .sidebar-backdrop {
+    display: block;
+    z-index: 1001;
+  }
+
+  /* Adjust paper sheet for mobile */
+  .paper-sheet {
+    border-radius: 0;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .editor {
+    padding: 16px;
+  }
+}
+
+/* Also show toggle button if screen is < 1100px (when right pane initially hides) */
+@media (max-width: 1100px) {
+  .mobile-only {
+    display: inline-flex !important;
+  }
+}
+
+/* Small phones (≤480px) */
+@media (max-width: 480px) {
+  /* Sidebar still collapsed width on small screens */
+  .sidebar.collapsed {
+    width: 60px;
+  }
+
+  .editor {
+    padding: 12px;
+  }
+}
+
+/* Enhanced Properties Toggle Button */
+#mobile-right-sidebar-toggle {
+  color: var(--accent);
+  background: rgba(0,0,0,0.05);
+}
+
+#mobile-right-sidebar-toggle:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+/* Active state for right pane toggle */
+body.right-pane-open #mobile-right-sidebar-toggle {
+  background: var(--accent);
+  color: white;
+}

@@ -53,6 +53,11 @@ class App {
       this.editorManager.openDocument(firstDocId);
     }
     
+    // Auto-collapse sidebar on mobile/tablet
+    if (window.innerWidth <= 1024) {
+        document.querySelector('.sidebar')?.classList.add('collapsed');
+    }
+
     this.setupEventListeners();
     this.setupAvatarDropdown();
   }
@@ -88,6 +93,23 @@ class App {
         sidebarToggle.addEventListener('click', () => {
           sidebar.classList.toggle('collapsed');
         });
+    }
+
+    // Right Pane Toggle
+    const rightPaneToggle = document.getElementById('mobile-right-sidebar-toggle');
+    const backdrop = document.getElementById('sidebar-backdrop'); // Keep backdrop for right pane
+
+    if (rightPaneToggle) {
+        rightPaneToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.body.classList.toggle('right-pane-open');
+        });
+    }
+
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        document.body.classList.remove('right-pane-open');
+      });
     }
   }
 

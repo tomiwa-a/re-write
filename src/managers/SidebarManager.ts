@@ -170,7 +170,7 @@ export class SidebarManager {
                   <div style="display: flex; align-items: center; transform: ${chevronRotation}" class="chevron-container">
                     ${IconChevron}
                   </div>
-                  <div style="display: flex; align-items: center; margin-right: 8px;">
+                  <div class="category-icon-container" title="${category.title}">
                      ${category.icon || ''}
                   </div>
                   <span class="category-title">${category.title}</span>
