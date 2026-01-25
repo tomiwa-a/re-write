@@ -336,6 +336,20 @@ export class SidebarManager {
            }
        });
     }
+
+    private expandFolder(id: string): void {
+       console.log('[expandFolder] Called with id:', id);
+       this.categories.forEach(cat => {
+           const folder = this.findItem(cat.items, id);
+           console.log('[expandFolder] Found folder:', folder, 'Collapsed?', folder?.collapsed);
+           if (folder && folder.collapsed) {
+               console.log('[expandFolder] Expanding folder:', id);
+               folder.collapsed = false;
+               this.expandedFolderIds.add(id);
+               this.renderSidebar();
+           }
+       });
+    }
   
     private findItem(items: SidebarItem[], id: string): SidebarItem | null {
         for (const item of items) {
@@ -519,32 +533,38 @@ export class SidebarManager {
         e.stopPropagation();
 
         const target = e.currentTarget as HTMLElement;
-        const draggedType = e.dataTransfer!.types.includes('itemtype') ? 
-            e.dataTransfer!.getData('itemType') : null;
+        console.log('[DragOver] Target:', target.className, 'ID:', target.getAttribute('data-id'));
+        console.log('[DragOver] Contains folder?', target.classList.contains('folder'));
+        console.log('[DragOver] Contains file?', target.classList.contains('file'));
+        
+        // Note: Can't use getData() during dragover due to browser security
+        // Just check if the type exists in the types array
+        const hasDragData = e.dataTransfer!.types.includes('itemtype');
+        console.log('[DragOver] Has drag data?', hasDragData);
 
-        if (!draggedType) return;
+        if (!hasDragData) {
+            console.log('[DragOver] No drag data, returning early');
+            return;
+        }
 
         // Only folders can be drop targets for items
         if (target.classList.contains('folder')) {
             const targetId = target.getAttribute('data-id');
-            const draggedId = e.dataTransfer!.getData('itemId');
+            
+            console.log('[DragOver] ON FOLDER! ID:', targetId);
 
-            // Validate drop
-            if (draggedType === 'folder' && targetId === draggedId) {
-                target.classList.add('drop-invalid');
-                e.dataTransfer!.dropEffect = 'none';
-                return;
-            }
-
-            // Check for circular reference
-            if (draggedType === 'folder' && this.isDescendant(draggedId, targetId!)) {
-                target.classList.add('drop-invalid');
-                e.dataTransfer!.dropEffect = 'none';
-                return;
-            }
+            // Note: Can't validate draggedType here due to getData() restriction
+            // Validation will happen in handleDrop instead
 
             target.classList.add('drop-target');
             e.dataTransfer!.dropEffect = 'move';
+
+            // Auto-expand folder immediately
+            console.log('[DragOver] Folder:', targetId, 'Expanded?', this.expandedFolderIds.has(targetId!));
+            if (targetId && !this.expandedFolderIds.has(targetId)) {
+                console.log('[DragOver] Attempting to expand folder:', targetId);
+                this.expandFolder(targetId);
+            }
         } else if (target.classList.contains('category-items') || target.classList.contains('category-header')) {
             // Allow drop on root (empty space or category header)
             target.classList.add('drop-target');
