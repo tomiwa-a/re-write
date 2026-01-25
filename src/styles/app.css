@@ -390,6 +390,7 @@
 
 .tree-category.expanded .category-items {
   display: block;
+  min-height: 60px;
 }
 
 .category-actions {
@@ -480,7 +481,29 @@
   background: rgba(59, 130, 246, 0.05);
   border: 2px dashed #3b82f6;
   border-radius: 8px;
-  min-height: 40px;
+  min-height: 60px;
+  position: relative;
+}
+
+.category-items.drop-target::after {
+  content: 'Drop here to move to root';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #3b82f6;
+  font-size: 0.85rem;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.empty-category-hint {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  font-style: italic;
+  pointer-events: none;
 }
 
 /* Mini Mode Toggle */

@@ -188,7 +188,7 @@ export class SidebarManager {
                   ` : ''}
                 </div>
               </div>
-              <div class="category-items" style="display: ${displayItems}">
+              <div class="category-items" data-category="${category.id}" style="display: ${displayItems}">
                 ${this.renderItems(category.items)}
               </div>
             </div>
@@ -565,9 +565,18 @@ export class SidebarManager {
         let newParentId: string | undefined = undefined;
 
         if (target.classList.contains('folder')) {
+            // Drop into folder
             newParentId = target.getAttribute('data-id') || undefined;
+        } else if (target.classList.contains('file')) {
+            // Drop on file - move to same parent as the file
+            const targetFileId = target.getAttribute('data-id');
+            if (targetFileId) {
+                const targetFile = await documentService.getById(targetFileId);
+                newParentId = targetFile?.folderId;
+            }
         } else if (target.classList.contains('category-items')) {
-            newParentId = undefined; // Root level
+            // Drop on empty space - move to root
+            newParentId = undefined;
         } else {
             return;
         }
