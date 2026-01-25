@@ -338,12 +338,9 @@ export class SidebarManager {
     }
 
     private expandFolder(id: string): void {
-       console.log('[expandFolder] Called with id:', id);
        this.categories.forEach(cat => {
            const folder = this.findItem(cat.items, id);
-           console.log('[expandFolder] Found folder:', folder, 'Collapsed?', folder?.collapsed);
            if (folder && folder.collapsed) {
-               console.log('[expandFolder] Expanding folder:', id);
                folder.collapsed = false;
                this.expandedFolderIds.add(id);
                this.renderSidebar();
@@ -521,9 +518,17 @@ export class SidebarManager {
 
         if (!itemId || !itemType) return;
 
+        // Get the category type from the parent tree-category element
+        const categoryElement = target.closest('.tree-category');
+        const categoryId = categoryElement?.getAttribute('data-category-id');
+        let categoryType: DocumentType = 'note';
+        if (categoryId === 'canvas') categoryType = 'canvas';
+        else if (categoryId === 'erd') categoryType = 'erd';
+
         e.dataTransfer!.effectAllowed = 'move';
         e.dataTransfer!.setData('itemId', itemId);
         e.dataTransfer!.setData('itemType', itemType);
+        e.dataTransfer!.setData('categoryType', categoryType);
 
         target.classList.add('dragging');
     }
@@ -533,36 +538,22 @@ export class SidebarManager {
         e.stopPropagation();
 
         const target = e.currentTarget as HTMLElement;
-        console.log('[DragOver] Target:', target.className, 'ID:', target.getAttribute('data-id'));
-        console.log('[DragOver] Contains folder?', target.classList.contains('folder'));
-        console.log('[DragOver] Contains file?', target.classList.contains('file'));
         
         // Note: Can't use getData() during dragover due to browser security
         // Just check if the type exists in the types array
         const hasDragData = e.dataTransfer!.types.includes('itemtype');
-        console.log('[DragOver] Has drag data?', hasDragData);
 
-        if (!hasDragData) {
-            console.log('[DragOver] No drag data, returning early');
-            return;
-        }
+        if (!hasDragData) return;
 
         // Only folders can be drop targets for items
         if (target.classList.contains('folder')) {
             const targetId = target.getAttribute('data-id');
-            
-            console.log('[DragOver] ON FOLDER! ID:', targetId);
-
-            // Note: Can't validate draggedType here due to getData() restriction
-            // Validation will happen in handleDrop instead
 
             target.classList.add('drop-target');
             e.dataTransfer!.dropEffect = 'move';
 
             // Auto-expand folder immediately
-            console.log('[DragOver] Folder:', targetId, 'Expanded?', this.expandedFolderIds.has(targetId!));
             if (targetId && !this.expandedFolderIds.has(targetId)) {
-                console.log('[DragOver] Attempting to expand folder:', targetId);
                 this.expandFolder(targetId);
             }
         } else if (target.classList.contains('category-items') || target.classList.contains('category-header')) {
@@ -586,25 +577,48 @@ export class SidebarManager {
 
         const itemId = e.dataTransfer!.getData('itemId');
         const itemType = e.dataTransfer!.getData('itemType');
+        const categoryType = e.dataTransfer!.getData('categoryType') as DocumentType;
 
         if (!itemId || !itemType) return;
 
         let newParentId: string | undefined = undefined;
+        let targetCategoryType: DocumentType | null = null;
 
         if (target.classList.contains('folder')) {
-            // Drop into folder
-            newParentId = target.getAttribute('data-id') || undefined;
+            // Drop into folder - check folder's category type
+            const folderId = target.getAttribute('data-id');
+            if (folderId) {
+                const folder = await folderService.getById(folderId);
+                if (folder) {
+                    targetCategoryType = folder.type;
+                    newParentId = folderId;
+                }
+            }
         } else if (target.classList.contains('file')) {
             // Drop on file - move to same parent as the file
             const targetFileId = target.getAttribute('data-id');
             if (targetFileId) {
                 const targetFile = await documentService.getById(targetFileId);
-                newParentId = targetFile?.folderId;
+                if (targetFile) {
+                    targetCategoryType = targetFile.type;
+                    newParentId = targetFile.folderId;
+                }
             }
         } else if (target.classList.contains('category-items') || target.classList.contains('category-header')) {
-            // Drop on empty space or category header - move to root
+            // Drop on empty space or category header - get category type from element
+            const categoryElement = target.closest('.tree-category');
+            const categoryId = categoryElement?.getAttribute('data-category-id');
+            if (categoryId === 'notes') targetCategoryType = 'note';
+            else if (categoryId === 'canvas') targetCategoryType = 'canvas';
+            else if (categoryId === 'erd') targetCategoryType = 'erd';
             newParentId = undefined;
         } else {
+            return;
+        }
+
+        // Validate category type matches
+        if (targetCategoryType && categoryType !== targetCategoryType) {
+            Toast.error(`Cannot move ${categoryType} to ${targetCategoryType} category`);
             return;
         }
 
