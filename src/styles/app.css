@@ -459,6 +459,30 @@
   justify-content: center;
 }
 
+/* Drag and Drop Styles */
+.tree-item.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.tree-item.drop-target {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+}
+
+.tree-item.drop-invalid {
+  cursor: not-allowed;
+  background: rgba(239, 68, 68, 0.05);
+  border-left: 3px solid #ef4444;
+}
+
+.category-items.drop-target {
+  background: rgba(59, 130, 246, 0.05);
+  border: 2px dashed #3b82f6;
+  border-radius: 8px;
+  min-height: 40px;
+}
+
 /* Mini Mode Toggle */
 .sidebar:not(.collapsed) .mini-only {
   display: none;

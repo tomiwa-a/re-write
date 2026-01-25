@@ -208,7 +208,11 @@ export class SidebarManager {
           if (item.type === 'folder') {
              const isExpanded = !item.collapsed;
              html += `
-              <div class="tree-item folder" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+              <div class="tree-item folder" 
+                   data-id="${item.id}" 
+                   data-type="folder"
+                   draggable="true"
+                   style="padding-left: ${paddingLeft}px">
                  <span class="folder-icon">${isExpanded ? IconFolderOpen : IconFolder}</span>
                  <span class="item-title">${item.title}</span>
               </div>
@@ -217,7 +221,11 @@ export class SidebarManager {
           } else {
              const isActive = item.id === this.activeFileId;
              html += `
-              <div class="tree-item file ${isActive ? 'active' : ''}" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+              <div class="tree-item file ${isActive ? 'active' : ''}" 
+                   data-id="${item.id}" 
+                   data-type="document"
+                   draggable="true"
+                   style="padding-left: ${paddingLeft}px">
                  <span class="file-icon">${IconFile}</span>
                  <span class="item-title">${item.title}</span>
               </div>
@@ -278,6 +286,24 @@ export class SidebarManager {
                     this.onFileSelect(id);
                 }
             });
+        });
+
+        // Drag and drop event listeners
+        document.querySelectorAll('.tree-item[draggable="true"]').forEach(item => {
+            item.addEventListener('dragstart', (e) => this.handleDragStart(e as DragEvent));
+            item.addEventListener('dragend', (e) => this.handleDragEnd(e as DragEvent));
+        });
+
+        document.querySelectorAll('.tree-item').forEach(item => {
+            item.addEventListener('dragover', (e) => this.handleDragOver(e as DragEvent));
+            item.addEventListener('dragleave', (e) => this.handleDragLeave(e as DragEvent));
+            item.addEventListener('drop', (e) => this.handleDrop(e as DragEvent));
+        });
+
+        // Also allow dropping on category items area (for root level)
+        document.querySelectorAll('.category-items').forEach(area => {
+            area.addEventListener('dragover', (e) => this.handleDragOver(e as DragEvent));
+            area.addEventListener('drop', (e) => this.handleDrop(e as DragEvent));
         });
     }
 
@@ -464,5 +490,143 @@ export class SidebarManager {
             { label: 'Delete', icon: '', action: () => this.deleteItem(noteId, 'file', noteName), danger: true },
         ];
         ContextMenu.show(menuItems, e.clientX, e.clientY);
+    }
+
+    // Drag and Drop Handlers
+    private handleDragStart(e: DragEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        const itemId = target.getAttribute('data-id');
+        const itemType = target.getAttribute('data-type');
+
+        if (!itemId || !itemType) return;
+
+        e.dataTransfer!.effectAllowed = 'move';
+        e.dataTransfer!.setData('itemId', itemId);
+        e.dataTransfer!.setData('itemType', itemType);
+
+        target.classList.add('dragging');
+    }
+
+    private handleDragOver(e: DragEvent): void {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const target = e.currentTarget as HTMLElement;
+        const draggedType = e.dataTransfer!.types.includes('itemtype') ? 
+            e.dataTransfer!.getData('itemType') : null;
+
+        if (!draggedType) return;
+
+        // Only folders can be drop targets for items
+        if (target.classList.contains('folder')) {
+            const targetId = target.getAttribute('data-id');
+            const draggedId = e.dataTransfer!.getData('itemId');
+
+            // Validate drop
+            if (draggedType === 'folder' && targetId === draggedId) {
+                target.classList.add('drop-invalid');
+                e.dataTransfer!.dropEffect = 'none';
+                return;
+            }
+
+            // Check for circular reference
+            if (draggedType === 'folder' && this.isDescendant(draggedId, targetId!)) {
+                target.classList.add('drop-invalid');
+                e.dataTransfer!.dropEffect = 'none';
+                return;
+            }
+
+            target.classList.add('drop-target');
+            e.dataTransfer!.dropEffect = 'move';
+        } else if (target.classList.contains('category-items')) {
+            // Allow drop on root
+            target.classList.add('drop-target');
+            e.dataTransfer!.dropEffect = 'move';
+        }
+    }
+
+    private handleDragLeave(e: DragEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        target.classList.remove('drop-target', 'drop-invalid');
+    }
+
+    private async handleDrop(e: DragEvent): Promise<void> {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const target = e.currentTarget as HTMLElement;
+        target.classList.remove('drop-target', 'drop-invalid');
+
+        const itemId = e.dataTransfer!.getData('itemId');
+        const itemType = e.dataTransfer!.getData('itemType');
+
+        if (!itemId || !itemType) return;
+
+        let newParentId: string | undefined = undefined;
+
+        if (target.classList.contains('folder')) {
+            newParentId = target.getAttribute('data-id') || undefined;
+        } else if (target.classList.contains('category-items')) {
+            newParentId = undefined; // Root level
+        } else {
+            return;
+        }
+
+        // Update the item
+        await this.updateItemParent(itemId, itemType, newParentId);
+    }
+
+    private handleDragEnd(e: DragEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        target.classList.remove('dragging');
+
+        // Clean up all drop indicators
+        document.querySelectorAll('.drop-target, .drop-invalid').forEach(el => {
+            el.classList.remove('drop-target', 'drop-invalid');
+        });
+    }
+
+    // Helper Methods
+    private isDescendant(parentId: string, childId: string): boolean {
+        // Check if childId is a descendant of parentId
+        const checkDescendant = (folderId: string): boolean => {
+            const category = this.categories.find(c => c.id === 'notes');
+            if (!category) return false;
+
+            const findInItems = (items: SidebarItem[]): boolean => {
+                for (const item of items) {
+                    if (item.id === folderId) {
+                        if (item.parentId === parentId) return true;
+                        if (item.parentId) return checkDescendant(item.parentId);
+                    }
+                    if (item.children && findInItems(item.children)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            return findInItems(category.items);
+        };
+
+        return checkDescendant(childId);
+    }
+
+    private async updateItemParent(itemId: string, itemType: string, newParentId?: string): Promise<void> {
+        try {
+            if (itemType === 'folder') {
+                await folderService.update(itemId, { parentId: newParentId });
+                Toast.success('Folder moved');
+            } else if (itemType === 'document') {
+                await documentService.update(itemId, { folderId: newParentId });
+                Toast.success('Document moved');
+            }
+
+            // Reload sidebar to reflect changes
+            await this.loadData();
+        } catch (error) {
+            console.error('Failed to move item:', error);
+            Toast.error('Failed to move item');
+        }
     }
 }
