@@ -51,11 +51,29 @@ export class SidebarManager {
             const folders = await folderService.getAll();
             const documents = await documentService.getAll();
   
+            // Notes
             const notesCategory = this.categories.find(c => c.id === 'notes');
             if (notesCategory) {
-                notesCategory.items = this.mapData(folders, documents);
+                const noteFolders = folders.filter(f => f.type === 'note');
+                const noteDocs = documents.filter(d => d.type === 'note');
+                notesCategory.items = this.mapData(noteFolders, noteDocs);
             }
-            // Future: Canvas/ERD category mapping
+
+            // Canvas
+            const canvasCategory = this.categories.find(c => c.id === 'canvas');
+            if (canvasCategory) {
+                const canvasFolders = folders.filter(f => f.type === 'canvas');
+                const canvasDocs = documents.filter(d => d.type === 'canvas');
+                canvasCategory.items = this.mapData(canvasFolders, canvasDocs);
+            }
+
+            // ERD
+            const erdCategory = this.categories.find(c => c.id === 'erd');
+            if (erdCategory) {
+                const erdFolders = folders.filter(f => f.type === 'erd');
+                const erdDocs = documents.filter(d => d.type === 'erd');
+                erdCategory.items = this.mapData(erdFolders, erdDocs);
+            }
             
             this.renderSidebar();
         } catch (error) {
