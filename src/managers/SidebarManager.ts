@@ -188,7 +188,7 @@ export class SidebarManager {
                   ` : ''}
                 </div>
               </div>
-              <div class="category-items" style="display: ${displayItems}">
+              <div class="category-items" data-category="${category.id}" style="display: ${displayItems}">
                 ${this.renderItems(category.items)}
               </div>
             </div>
@@ -208,7 +208,11 @@ export class SidebarManager {
           if (item.type === 'folder') {
              const isExpanded = !item.collapsed;
              html += `
-              <div class="tree-item folder" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+              <div class="tree-item folder" 
+                   data-id="${item.id}" 
+                   data-type="folder"
+                   draggable="true"
+                   style="padding-left: ${paddingLeft}px">
                  <span class="folder-icon">${isExpanded ? IconFolderOpen : IconFolder}</span>
                  <span class="item-title">${item.title}</span>
               </div>
@@ -217,7 +221,11 @@ export class SidebarManager {
           } else {
              const isActive = item.id === this.activeFileId;
              html += `
-              <div class="tree-item file ${isActive ? 'active' : ''}" data-id="${item.id}" style="padding-left: ${paddingLeft}px">
+              <div class="tree-item file ${isActive ? 'active' : ''}" 
+                   data-id="${item.id}" 
+                   data-type="document"
+                   draggable="true"
+                   style="padding-left: ${paddingLeft}px">
                  <span class="file-icon">${IconFile}</span>
                  <span class="item-title">${item.title}</span>
               </div>
@@ -279,6 +287,31 @@ export class SidebarManager {
                 }
             });
         });
+
+        // Drag and drop event listeners
+        document.querySelectorAll('.tree-item[draggable="true"]').forEach(item => {
+            item.addEventListener('dragstart', (e) => this.handleDragStart(e as DragEvent));
+            item.addEventListener('dragend', (e) => this.handleDragEnd(e as DragEvent));
+        });
+
+        document.querySelectorAll('.tree-item').forEach(item => {
+            item.addEventListener('dragover', (e) => this.handleDragOver(e as DragEvent));
+            item.addEventListener('dragleave', (e) => this.handleDragLeave(e as DragEvent));
+            item.addEventListener('drop', (e) => this.handleDrop(e as DragEvent));
+        });
+
+        // Also allow dropping on category items area (for root level)
+        document.querySelectorAll('.category-items').forEach(area => {
+            area.addEventListener('dragover', (e) => this.handleDragOver(e as DragEvent));
+            area.addEventListener('drop', (e) => this.handleDrop(e as DragEvent));
+        });
+
+        // Allow dropping on category headers to move to root
+        document.querySelectorAll('.category-header').forEach(header => {
+            header.addEventListener('dragover', (e) => this.handleDragOver(e as DragEvent));
+            header.addEventListener('dragleave', (e) => this.handleDragLeave(e as DragEvent));
+            header.addEventListener('drop', (e) => this.handleDrop(e as DragEvent));
+        });
     }
 
     private toggleCategory(id: string): void {
@@ -299,6 +332,17 @@ export class SidebarManager {
                } else {
                    this.expandedFolderIds.delete(id);
                }
+               this.renderSidebar();
+           }
+       });
+    }
+
+    private expandFolder(id: string): void {
+       this.categories.forEach(cat => {
+           const folder = this.findItem(cat.items, id);
+           if (folder && folder.collapsed) {
+               folder.collapsed = false;
+               this.expandedFolderIds.add(id);
                this.renderSidebar();
            }
        });
@@ -464,5 +508,180 @@ export class SidebarManager {
             { label: 'Delete', icon: '', action: () => this.deleteItem(noteId, 'file', noteName), danger: true },
         ];
         ContextMenu.show(menuItems, e.clientX, e.clientY);
+    }
+
+    // Drag and Drop Handlers
+    private handleDragStart(e: DragEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        const itemId = target.getAttribute('data-id');
+        const itemType = target.getAttribute('data-type');
+
+        if (!itemId || !itemType) return;
+
+        // Get the category type from the parent tree-category element
+        const categoryElement = target.closest('.tree-category');
+        const categoryId = categoryElement?.getAttribute('data-category-id');
+        let categoryType: DocumentType = 'note';
+        if (categoryId === 'canvas') categoryType = 'canvas';
+        else if (categoryId === 'erd') categoryType = 'erd';
+
+        e.dataTransfer!.effectAllowed = 'move';
+        e.dataTransfer!.setData('itemId', itemId);
+        e.dataTransfer!.setData('itemType', itemType);
+        e.dataTransfer!.setData('categoryType', categoryType);
+
+        target.classList.add('dragging');
+    }
+
+    private handleDragOver(e: DragEvent): void {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const target = e.currentTarget as HTMLElement;
+        
+        // Note: Can't use getData() during dragover due to browser security
+        // Just check if the type exists in the types array
+        const hasDragData = e.dataTransfer!.types.includes('itemtype');
+
+        if (!hasDragData) return;
+
+        // Only folders can be drop targets for items
+        if (target.classList.contains('folder')) {
+            const targetId = target.getAttribute('data-id');
+
+            target.classList.add('drop-target');
+            e.dataTransfer!.dropEffect = 'move';
+
+            // Auto-expand folder immediately
+            if (targetId && !this.expandedFolderIds.has(targetId)) {
+                this.expandFolder(targetId);
+            }
+        } else if (target.classList.contains('category-items') || target.classList.contains('category-header')) {
+            // Allow drop on root (empty space or category header)
+            target.classList.add('drop-target');
+            e.dataTransfer!.dropEffect = 'move';
+        }
+    }
+
+    private handleDragLeave(e: DragEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        target.classList.remove('drop-target', 'drop-invalid');
+    }
+
+    private async handleDrop(e: DragEvent): Promise<void> {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const target = e.currentTarget as HTMLElement;
+        target.classList.remove('drop-target', 'drop-invalid');
+
+        const itemId = e.dataTransfer!.getData('itemId');
+        const itemType = e.dataTransfer!.getData('itemType');
+        const categoryType = e.dataTransfer!.getData('categoryType') as DocumentType;
+
+        if (!itemId || !itemType) return;
+
+        let newParentId: string | undefined = undefined;
+        let targetCategoryType: DocumentType | null = null;
+
+        if (target.classList.contains('folder')) {
+            // Drop into folder - check folder's category type
+            const folderId = target.getAttribute('data-id');
+            if (folderId) {
+                const folder = await folderService.getById(folderId);
+                if (folder) {
+                    targetCategoryType = folder.type;
+                    newParentId = folderId;
+                }
+            }
+        } else if (target.classList.contains('file')) {
+            // Drop on file - move to same parent as the file
+            const targetFileId = target.getAttribute('data-id');
+            if (targetFileId) {
+                const targetFile = await documentService.getById(targetFileId);
+                if (targetFile) {
+                    targetCategoryType = targetFile.type;
+                    newParentId = targetFile.folderId;
+                }
+            }
+        } else if (target.classList.contains('category-items') || target.classList.contains('category-header')) {
+            // Drop on empty space or category header - get category type from element
+            const categoryElement = target.closest('.tree-category');
+            const categoryId = categoryElement?.getAttribute('data-category-id');
+            if (categoryId === 'notes') targetCategoryType = 'note';
+            else if (categoryId === 'canvas') targetCategoryType = 'canvas';
+            else if (categoryId === 'erd') targetCategoryType = 'erd';
+            newParentId = undefined;
+        } else {
+            return;
+        }
+
+        // Validate category type matches
+        if (targetCategoryType && categoryType !== targetCategoryType) {
+            Toast.error(`Cannot move ${categoryType} to ${targetCategoryType} category`);
+            return;
+        }
+
+        // Update the item
+        await this.updateItemParent(itemId, itemType, newParentId);
+    }
+
+    private handleDragEnd(e: DragEvent): void {
+        const target = e.currentTarget as HTMLElement;
+        target.classList.remove('dragging');
+
+        // Clean up all drop indicators
+        document.querySelectorAll('.drop-target, .drop-invalid').forEach(el => {
+            el.classList.remove('drop-target', 'drop-invalid');
+        });
+    }
+
+    // Helper Methods
+    private isDescendant(parentId: string, childId: string): boolean {
+        // Check if childId is a descendant of parentId
+        const checkDescendant = (folderId: string): boolean => {
+            const category = this.categories.find(c => c.id === 'notes');
+            if (!category) return false;
+
+            const findInItems = (items: SidebarItem[]): boolean => {
+                for (const item of items) {
+                    if (item.id === folderId) {
+                        if (item.parentId === parentId) return true;
+                        if (item.parentId) return checkDescendant(item.parentId);
+                    }
+                    if (item.children && findInItems(item.children)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            return findInItems(category.items);
+        };
+
+        return checkDescendant(childId);
+    }
+
+    private async updateItemParent(itemId: string, itemType: string, newParentId?: string): Promise<void> {
+        try {
+            if (itemType === 'folder') {
+                const folder = await folderService.getById(itemId);
+                if (folder && folder.parentId !== newParentId) {
+                    await folderService.update(itemId, { parentId: newParentId });
+                    Toast.success('Folder moved');
+                    await this.loadData();
+                }
+            } else if (itemType === 'document') {
+                const doc = await documentService.getById(itemId);
+                if (doc && doc.folderId !== newParentId) {
+                    await documentService.update(itemId, { folderId: newParentId });
+                    Toast.success('Document moved');
+                    await this.loadData();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to move item:', error);
+            Toast.error('Failed to move item');
+        }
     }
 }

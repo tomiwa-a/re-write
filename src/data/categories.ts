@@ -5,7 +5,7 @@ import { CanvasIcon } from '../assets/icons/canvas';
 import { ERDIcon } from '../assets/icons/erd';
 
 export const INITIAL_CATEGORIES: Category[] = [
-    { id: 'favorites', title: 'Favorites', type: 'category', collapsed: false, items: [], icon: FavoritesIcon },
+    { id: 'favorites', title: 'Favorites', type: 'category', collapsed: true, items: [], icon: FavoritesIcon },
     { 
         id: 'notes', 
         title: 'Notes', 
