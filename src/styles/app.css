@@ -369,6 +369,11 @@
   white-space: nowrap;
 }
 
+.category-header.drop-target {
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+}
+
 .chevron-icon {
   transition: transform 0.2s ease;
   transform: rotate(-90deg); /* Default collapsed (pointing right) */

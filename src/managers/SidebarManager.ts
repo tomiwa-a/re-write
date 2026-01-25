@@ -305,6 +305,13 @@ export class SidebarManager {
             area.addEventListener('dragover', (e) => this.handleDragOver(e as DragEvent));
             area.addEventListener('drop', (e) => this.handleDrop(e as DragEvent));
         });
+
+        // Allow dropping on category headers to move to root
+        document.querySelectorAll('.category-header').forEach(header => {
+            header.addEventListener('dragover', (e) => this.handleDragOver(e as DragEvent));
+            header.addEventListener('dragleave', (e) => this.handleDragLeave(e as DragEvent));
+            header.addEventListener('drop', (e) => this.handleDrop(e as DragEvent));
+        });
     }
 
     private toggleCategory(id: string): void {
@@ -538,8 +545,8 @@ export class SidebarManager {
 
             target.classList.add('drop-target');
             e.dataTransfer!.dropEffect = 'move';
-        } else if (target.classList.contains('category-items')) {
-            // Allow drop on root
+        } else if (target.classList.contains('category-items') || target.classList.contains('category-header')) {
+            // Allow drop on root (empty space or category header)
             target.classList.add('drop-target');
             e.dataTransfer!.dropEffect = 'move';
         }
@@ -574,8 +581,8 @@ export class SidebarManager {
                 const targetFile = await documentService.getById(targetFileId);
                 newParentId = targetFile?.folderId;
             }
-        } else if (target.classList.contains('category-items')) {
-            // Drop on empty space - move to root
+        } else if (target.classList.contains('category-items') || target.classList.contains('category-header')) {
+            // Drop on empty space or category header - move to root
             newParentId = undefined;
         } else {
             return;
@@ -624,15 +631,20 @@ export class SidebarManager {
     private async updateItemParent(itemId: string, itemType: string, newParentId?: string): Promise<void> {
         try {
             if (itemType === 'folder') {
-                await folderService.update(itemId, { parentId: newParentId });
-                Toast.success('Folder moved');
+                const folder = await folderService.getById(itemId);
+                if (folder && folder.parentId !== newParentId) {
+                    await folderService.update(itemId, { parentId: newParentId });
+                    Toast.success('Folder moved');
+                    await this.loadData();
+                }
             } else if (itemType === 'document') {
-                await documentService.update(itemId, { folderId: newParentId });
-                Toast.success('Document moved');
+                const doc = await documentService.getById(itemId);
+                if (doc && doc.folderId !== newParentId) {
+                    await documentService.update(itemId, { folderId: newParentId });
+                    Toast.success('Document moved');
+                    await this.loadData();
+                }
             }
-
-            // Reload sidebar to reflect changes
-            await this.loadData();
         } catch (error) {
             console.error('Failed to move item:', error);
             Toast.error('Failed to move item');
