@@ -502,19 +502,6 @@ export class SidebarManager {
     private showFolderContextMenu(e: MouseEvent, header: HTMLElement): void {
         const folderId = header.getAttribute('data-id'); // Header is the .tree-item.folder
         if (!folderId) return;
-
-        // Find the folder object to know its type (Strict typing)
-        // Since we don't have the folder object handy, we might need to look it up from this.categories
-        // For optimization, let's assume we can fetch it or pass it. 
-        // For now, I'll default to 'note' if not found, but we should find it.
-        // const type: DocumentType = 'note'; // TODO: finding logic
-
-        // Actually, we can look it up in Categories if we iterate
-        // Or we attach data-type to the HTML
-        
-        // Let's implement strict type lookup later in Phase 17 optimization. 
-        // For now, default to 'note' or try to guess from category? 
-        // The header is inside a category div.
         const catId = header.closest('.tree-category')?.getAttribute('data-category-id');
         let derivedType: DocumentType = 'note';
         if (catId === 'canvas') derivedType = 'canvas';
@@ -575,8 +562,6 @@ export class SidebarManager {
 
         const target = e.currentTarget as HTMLElement;
         
-        // Note: Can't use getData() during dragover due to browser security
-        // Just check if the type exists in the types array
         const hasDragData = e.dataTransfer!.types.includes('itemtype');
 
         if (!hasDragData) return;

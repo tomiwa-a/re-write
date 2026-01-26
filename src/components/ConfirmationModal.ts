@@ -34,7 +34,6 @@ export class ConfirmationModal {
             if (e.target === overlay) this.close();
         });
 
-        // Let's imply Danger for deletion.
         const confirmClass = this.options.isDanger ? 'btn-danger' : 'btn-primary';
 
         overlay.innerHTML = `

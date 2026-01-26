@@ -17,8 +17,6 @@ export class EditorManager {
 
     public init(): void {
         console.log('[EditorManager] init() called');
-        // We will load the editor when a document is opened.
-        // this.setupEditor();
     }
 
 
@@ -47,13 +45,8 @@ export class EditorManager {
              await this.saveDocument();
         }
 
-        // Clean up previous view
-        // Clean up previous view
         console.log('[EditorManager] Destroying previous editor state');
         await this.destroy(); 
-
-        // destroy() now handles both editors (unmountCanvas or destroy Tiptap)
-        // Wait, current destroy() only destroys Tiptap. We need to update destroy() too.
         
         this.currentDocId = id;
         const doc = await documentService.getById(id);
@@ -76,8 +69,6 @@ export class EditorManager {
 
     private async openCanvas(doc: any) {
         console.log('[EditorManager] Opening Canvas editor');
-        // dynamic import to avoid circular dep issues or loading React unnecessarily? 
-        // Actually we can just import at top if we want, or dynamic import.
         const { mountCanvas } = await import('../components/mountCanvas');
         
         // Hide toolbar for canvas 
@@ -96,10 +87,6 @@ export class EditorManager {
     }
 
     private handleCanvasChange(content: any) {
-        // We can reuse the same debounce logic or create a dedicated one.
-        // For now, let's reuse scheduleSave? 
-        // But scheduleSave relies on this.editor (Tiptap).
-        // Let's make scheduleSave generic or just call update directly.
         
         if (this.saveTimeout) clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(async () => {
