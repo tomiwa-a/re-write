@@ -6,7 +6,17 @@ const CURRENT_USER_ID = 'local-user';
 export async function checkAndSeedData(): Promise<string | null> {
     try {
         let docs = await documentService.getAll();
-        if (docs.length === 0) {
+        
+        const getStartedDoc = docs.find(d => d.title === 'Get Started' && d.type === 'note');
+        
+        if (getStartedDoc) {
+             await documentService.update(getStartedDoc.id, {
+                 content: GET_STARTED_CONTENT
+             });
+             return getStartedDoc.id;
+        }
+
+        if (docs.length === 0 || !getStartedDoc) {
             console.log('Seeding initial data...');
             const newDoc = await documentService.create({
                 title: 'Get Started',
@@ -18,6 +28,7 @@ export async function checkAndSeedData(): Promise<string | null> {
             console.log('Seeding complete.');
             return newDoc.id;
         }
+        
         return docs[0].id;
     } catch (error) {
         console.error('Failed to seed data:', error);

@@ -19,14 +19,18 @@ import TextAlign from "@tiptap/extension-text-align";
 import History from "@tiptap/extension-history";
 import Placeholder from "@tiptap/extension-placeholder";
 import HardBreak from "@tiptap/extension-hard-break";
+import HorizontalRule from "@tiptap/extension-horizontal-rule";
 
 let editorInstance: Editor | null = null;
 
-export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLElement): Editor {
+export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLElement, initialContent: any = ""): Editor {
+  console.log('[createEditor] Initializing Tiptap editor');
   if (editorInstance) {
+    console.log('[createEditor] Destroying existing instance');
     editorInstance.destroy();
   }
 
+  console.log('[createEditor] Creating new Editor instance');
   editorInstance = new Editor({
     element: editorElement,
     extensions: [
@@ -44,6 +48,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
       Blockquote,
       Code,
       CodeBlock,
+      HorizontalRule,
       Link.configure({ openOnClick: false }),
       Highlight,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -51,7 +56,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
       Placeholder.configure({ placeholder: "Start writing..." }),
       HardBreak,
     ],
-    content: "",
+    content: initialContent,
     autofocus: true,
     editable: true,
   });

@@ -139,9 +139,27 @@ export class SidebarManager {
     }
 
     public async init(): Promise<void> {
+        console.log('[SidebarManager] init() called');
         this.setupSidebarContextMenu();
         await this.loadData();
-        // this.renderSidebar();
+    }
+
+    public selectFile(id: string): void {
+        console.log('[SidebarManager] selectFile() called for:', id);
+        this.activeFileId = id;
+        
+        document.querySelectorAll('.tree-item.file').forEach(el => el.classList.remove('active'));
+        const fileEl = document.querySelector(`.tree-item.file[data-id="${id}"]`);
+        if (fileEl) {
+            fileEl.classList.add('active');
+        } else {
+             console.warn('[SidebarManager] selectFile: File element not found in DOM for:', id);
+        }
+
+        if (this.onFileSelect) {
+            console.log('[SidebarManager] Triggering onFileSelect callback');
+            this.onFileSelect(id);
+        }
     }
 
     private setupSidebarContextMenu(): void {

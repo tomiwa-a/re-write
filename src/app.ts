@@ -25,6 +25,7 @@ class App {
   private syncEngine: SyncEngine;
 
   constructor() {
+    console.log('[App] Constructor started');
     this.convexClient = new ConvexClient(import.meta.env.VITE_CONVEX_URL);
     this.syncEngine = new SyncEngine(this.convexClient);
     this.editorManager = new EditorManager();
@@ -33,24 +34,33 @@ class App {
     // Connect Auth to Sync
     this.authManager.subscribe(() => {
         const userId = this.authManager.currentUser?._id || null;
+        console.log('[App] Auth state changed, setting user ID:', userId);
         void this.syncEngine.setUserId(userId);
     });
 
-    this.sidebarManager = new SidebarManager(this.authManager, this.syncEngine, (id) => this.editorManager.openDocument(id));
+    this.sidebarManager = new SidebarManager(this.authManager, this.syncEngine, (id) => {
+        console.log('[App] onFileSelect callback triggered for:', id);
+        this.editorManager.openDocument(id);
+    });
     this.rightPaneManager = new RightPaneManager(this.authManager, this.syncEngine);
 
     void this.init();
   }
 
   private async init(): Promise<void> {
+    console.log('[App] init() started');
     const firstDocId = await checkAndSeedData();
+    console.log('[App] checkAndSeedData result:', firstDocId);
     await this.authManager.init();
     await this.sidebarManager.init();
     this.editorManager.init();
     this.rightPaneManager.render();
     
     if (firstDocId) {
-      this.editorManager.openDocument(firstDocId);
+      console.log('[App] init: Selecting first document:', firstDocId);
+      this.sidebarManager.selectFile(firstDocId);
+    } else {
+        console.warn('[App] init: No first document to select');
     }
     
     // Auto-collapse sidebar on mobile/tablet
@@ -60,6 +70,7 @@ class App {
 
     this.setupEventListeners();
     this.setupAvatarDropdown();
+    console.log('[App] init() completed');
   }
 
   private setupEventListeners(): void {

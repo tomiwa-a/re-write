@@ -1,5 +1,5 @@
-import { createEditor } from '../editor';
 import { Editor } from '@tiptap/core';
+
 import { documentService } from '../lib/documents';
 
 export class EditorManager {
@@ -16,25 +16,17 @@ export class EditorManager {
     }
 
     public init(): void {
-        this.setupEditor();
+        console.log('[EditorManager] init() called');
+        // We will load the editor when a document is opened.
+        // this.setupEditor();
     }
 
-    private setupEditor(): void {
-        if (this.toolbarEl && this.editorEl) {
-            this.editor = createEditor(this.editorEl, this.toolbarEl);
-            
-            this.editor.on('update', () => {
-                if (this.currentDocId) {
-                    this.scheduleSave();
-                }
-            });
-        }
-    }
 
     private scheduleSave(): void {
         if (this.saveTimeout) clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
             if (this.currentDocId && this.editor) {
+                console.log('[EditorManager] Auto-saving document:', this.currentDocId);
                 this.saveDocument();
             }
         }, 1000);
@@ -42,18 +34,24 @@ export class EditorManager {
 
     private async saveDocument(): Promise<void> {
         if (!this.currentDocId || !this.editor) return;
+        console.log('[EditorManager] saveDocument() for:', this.currentDocId);
         const json = this.editor.getJSON();
         await documentService.update(this.currentDocId, { content: json });
     }
 
     public async openDocument(id: string): Promise<void> {
+        console.log('[EditorManager] openDocument() called with ID:', id);
         // Save previous doc if needed
         if (this.currentDocId) {
+             console.log('[EditorManager] Saving previous document:', this.currentDocId);
              await this.saveDocument();
         }
 
         // Clean up previous view
-        this.destroy(); 
+        // Clean up previous view
+        console.log('[EditorManager] Destroying previous editor state');
+        await this.destroy(); 
+
         // destroy() now handles both editors (unmountCanvas or destroy Tiptap)
         // Wait, current destroy() only destroys Tiptap. We need to update destroy() too.
         
@@ -61,9 +59,12 @@ export class EditorManager {
         const doc = await documentService.getById(id);
         
         if (!doc) {
+            console.error('[EditorManager] Document not found:', id);
             // Handle 404
             return;
         }
+        
+        console.log('[EditorManager] Document loaded:', { id: doc.id, type: doc.type });
 
         // Switch based on type
         if (doc.type === 'canvas') {
@@ -74,6 +75,7 @@ export class EditorManager {
     }
 
     private async openCanvas(doc: any) {
+        console.log('[EditorManager] Opening Canvas editor');
         // dynamic import to avoid circular dep issues or loading React unnecessarily? 
         // Actually we can just import at top if we want, or dynamic import.
         const { mountCanvas } = await import('../components/mountCanvas');
@@ -83,6 +85,7 @@ export class EditorManager {
         
         // Ensure editor element is clean/ready
         this.editorEl.innerHTML = '';
+        console.log('[EditorManager] Mounting Canvas');
         
         mountCanvas(this.editorEl, {
             initialContent: doc.content,
@@ -101,31 +104,38 @@ export class EditorManager {
         if (this.saveTimeout) clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(async () => {
             if (this.currentDocId) {
+                console.log('[EditorManager] Auto-saving Canvas:', this.currentDocId);
                 await documentService.update(this.currentDocId, { content });
             }
         }, 1000);
     }
 
     private async openTiptap(doc: any) {
+        console.log('[EditorManager] Opening Tiptap editor');
         const { createEditor } = await import('../editor');
         
         // Show toolbar
         if (this.toolbarEl) this.toolbarEl.style.display = 'flex';
         
         // Re-init Tiptap
-        this.editor = createEditor(this.editorEl, this.toolbarEl);
-        this.editor.commands.setContent(doc.content as any || '');
+        console.log('[EditorManager] Creating Tiptap instance with content length:', doc.content ? JSON.stringify(doc.content).length : 0);
+        this.editor = createEditor(this.editorEl, this.toolbarEl, doc.content || '');
         this.editor.setEditable(true);
         
         this.editor.on('update', () => {
              this.scheduleSave();
         });
+        console.log('[EditorManager] Tiptap instance created');
     }
 
     public async destroy(): Promise<void> {
+        console.log('[EditorManager] destroy() called');
         // Destroy Tiptap
-        this.editor?.destroy();
-        this.editor = null;
+        if (this.editor) {
+            console.log('[EditorManager] Destroying Tiptap instance');
+            this.editor.destroy();
+            this.editor = null;
+        }
 
         // Unmount Canvas if active
         // dynamic import to avoid eager loading
@@ -133,7 +143,10 @@ export class EditorManager {
         unmountCanvas();
         
         // Clear container
-        if (this.editorEl) this.editorEl.innerHTML = '';
+        if (this.editorEl) {
+            console.log('[EditorManager] Clearing editor element innerHTML');
+            this.editorEl.innerHTML = '';
+        }
         
         // Reset toolbar state
         if (this.toolbarEl) this.toolbarEl.style.display = 'flex';
