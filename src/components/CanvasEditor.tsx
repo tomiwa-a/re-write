@@ -13,6 +13,7 @@ export function CanvasEditor({ initialContent, onChange, readOnly = false }: Can
     return (
         <div className="canvas-container" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
             <Tldraw 
+                licenseKey={import.meta.env.VITE_TLDRAW_KEY}
                 onMount={(editor) => {
                     if (initialContent) {
                         try {
