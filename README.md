@@ -1,4 +1,4 @@
-# reWrite
+# Cellulose
 
 > Offline-first note-taking and drawing web application with real-time collaboration
 
@@ -8,9 +8,15 @@
 [![Convex](https://img.shields.io/badge/Convex-Backend-orange.svg)](https://convex.dev/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/tomiwa-a/re-write)
 
+## Features
+
+- **Offline-First**: Built with Dexie.js for robust local-first storage.
+- **Real-time Collaboration**: Sync and collaborate across devices powered by Convex.
+- **Rich Text & Canvas**: Seamlessly switch between markdown-style notes and infinite whiteboard.
+
 ## Overview
 
-reWrite combines rich note-taking with a free-draw canvas similar to draw.io. Work seamlessly offline, share with friends via links, and optionally sync across devices with authentication.
+Cellulose combines rich note-taking with a free-draw canvas similar to draw.io. Work seamlessly offline, share with friends via links, and optionally sync across devices with authentication.
 
 **Key Features:**
 

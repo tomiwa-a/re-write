@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
-      content="reWrite - Write and draw without limits"
+      content="Cellulose - Write and draw without limits"
     />
-    <title>reWrite</title>
+    <title>Cellulose</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="app-body">
@@ -31,7 +31,7 @@
             <div class="avatar-dropdown" id="avatar-dropdown">
               <div class="dropdown-header">
                 <p class="user-name">Felix The Coder</p>
-                <p class="user-email">felix@rewrite.app</p>
+                <p class="user-email">felix@cellulose.ink</p>
               </div>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item">
@@ -52,7 +52,17 @@
         </div>
 
         <div class="sidebar-header">
-          <a href="/" class="sidebar-logo">reWrite</a>
+          <a href="/" class="sidebar-logo">
+            <span class="logo-pen">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                <path d="M2 2l1.5 1.5"></path>
+                <circle cx="11" cy="11" r="2"></circle>
+              </svg>
+            </span>
+            <span class="logo-text">Cellulose</span>
+          </a>
           <button class="sidebar-toggle" title="Toggle sidebar">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 17l-5-5 5-5"/>
@@ -126,5 +136,19 @@
     </div>
 
     <script type="module" src="/src/app.ts"></script>
+    <style>
+      .logo-text {
+        font-family: var(--font-cursive);
+        font-size: 1.5rem;
+        color: var(--text-primary);
+      }
+      .logo-pen {
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        transform: rotate(-15deg);
+        margin-right: 4px;
+      }
+    </style>
   </body>
 </html>

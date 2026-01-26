@@ -1,13 +1,13 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { Folder, Document, SyncQueueItem } from "../types/backend";
 
-class ReWriteDB extends Dexie {
+class CelluloseDB extends Dexie {
   folders!: EntityTable<Folder, "id">;
   documents!: EntityTable<Document, "id">;
   syncQueue!: EntityTable<SyncQueueItem, "id">;
 
   constructor() {
-    super("rewrite");
+    super("cellulose");
 
     this.version(1).stores({
       folders: "id, parentId, updatedAt",
@@ -25,4 +25,4 @@ class ReWriteDB extends Dexie {
   }
 }
 
-export const db = new ReWriteDB();
+export const db = new CelluloseDB();
