@@ -235,7 +235,7 @@ body {
 
 /* --- Features Grid --- */
 .features {
-  padding: 120px 0;
+  padding: 120px 0 80px 0;
   background: white;
   position: relative;
 }
@@ -387,59 +387,106 @@ body {
   font-size: 1.25rem;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-  .hero-title { font-size: 3rem; }
-  .features-grid { grid-template-columns: 1fr; }
-  .about-content { grid-template-columns: 1fr; gap: 40px; }
-  .steps { grid-template-columns: 1fr; gap: 60px; text-align: center; }
-  .nav-links { display: none; }
-  .footer-content { flex-direction: column; gap: 24px; text-align: center; }
-}
 
-/* --- How It Works --- */
+/* --- How It Works / Workflow --- */
 .how-it-works {
-  padding: 120px 0;
-  background: white;
+  padding: 80px 0 140px 0;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
 }
 
-.steps {
+.workflow-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-}
-
-.step {
+  gap: 32px;
   position: relative;
 }
 
-.step-number {
-  font-size: 4rem;
+/* Connecting line for desktop */
+.workflow-grid::before {
+  content: '';
+  position: absolute;
+  top: 100px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: repeating-linear-gradient(to right, var(--accent) 0, var(--accent) 10px, transparent 10px, transparent 20px);
+  opacity: 0.2;
+  z-index: 0;
+}
+
+.workflow-card {
+  background: white;
+  padding: 48px 32px;
+  border-radius: 32px;
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.workflow-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 30px 60px -12px rgba(0,0,0,0.08);
+  border-color: var(--accent);
+}
+
+.workflow-icon-box {
+  width: 80px;
+  height: 80px;
+  background: var(--bg-primary);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  color: var(--accent);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.workflow-card:hover .workflow-icon-box {
+  background: var(--accent);
+  color: white;
+  transform: rotate(8deg);
+}
+
+.workflow-step-tag {
+  position: absolute;
+  top: -12px;
+  background: var(--accent);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
   font-weight: 800;
-  color: rgba(34, 197, 94, 0.4); /* Darkened from 0.15 */
-  line-height: 1;
-  margin-bottom: 24px;
-  display: block;
-  font-family: var(--font-sans);
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
-.step-title {
+.workflow-title {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 16px;
+  color: var(--text-primary);
 }
 
-.step-description {
+.workflow-desc {
   color: var(--text-secondary);
   line-height: 1.6;
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
-/* --- CTA Section --- */
+/* CTA Section */
 .cta {
   padding: 120px 0;
   text-align: center;
-  background: var(--bg-primary); /* Slight contrast from white */
+  background: var(--bg-primary);
 }
 
 .cta-title {
@@ -493,4 +540,16 @@ body {
   font-size: 1rem;
   font-weight: 600;
   user-select: none;
+}
+
+/* --- Mobile Overrides --- */
+@media (max-width: 768px) {
+  .hero-title { font-size: 3rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .about-content { grid-template-columns: 1fr; gap: 40px; }
+  .workflow-grid { grid-template-columns: 1fr !important; gap: 60px; }
+  .workflow-grid::before { display: none; }
+  .workflow-card { padding: 40px 24px; }
+  .nav-links { display: none; }
+  .footer-content { flex-direction: column; gap: 24px; text-align: center; }
 }

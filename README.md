@@ -45,45 +45,6 @@ Cellulose combines rich note-taking with a free-draw canvas similar to draw.io. 
 - Real-time sync, authentication, caching
 - TypeScript serverless functions
 
-## Development Roadmap
-
-### Phase 1: MVP
-
-- [x] Project setup with Vite + TypeScript
-- [x] Basic note editor with Tiptap
-- [ ] Free-draw canvas with basic shapes and tools
-- [x] IndexedDB storage implementation
-- [x] CRUD operations for notes and drawings
-- [ ] Export/Import as JSON files
-- [x] Responsive UI design
-
-### Phase 2: Sharing & Collaboration
-
-- [x] Convex backend integration
-- [x] User authentication (optional)
-- [ ] Generate shareable read-only links
-- [ ] Upload snapshots for sharing
-- [ ] Multi-device sync for logged-in users
-- [ ] Conflict resolution strategy
-
-### Phase 3: Real-Time Collaboration
-
-- [ ] Real-time collaborative editing
-- [ ] Operational transforms for conflict-free updates
-- [ ] Presence indicators
-- [ ] Cursor tracking for collaborators
-- [ ] Live canvas updates
-
-### Phase 4: Advanced Features
-
-- [ ] Version history and rollback
-- [ ] Templates for notes and diagrams
-- [ ] Advanced canvas tools (connectors, smart shapes)
-- [ ] Search and tagging system
-- [ ] Keyboard shortcuts
-- [ ] Dark mode
-- [ ] Export to PDF/SVG/PNG
-
 ## Getting Started
 
 ```bash
