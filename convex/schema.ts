@@ -7,6 +7,7 @@ export default defineSchema({
   folders: defineTable({
     id: v.string(),
     name: v.string(),
+    type: v.union(v.literal("note"), v.literal("canvas"), v.literal("erd")),
     parentId: v.optional(v.string()),
     userId: v.string(),
     createdAt: v.number(),
