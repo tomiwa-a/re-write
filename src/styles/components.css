@@ -81,10 +81,24 @@
   color: var(--text-primary);
 }
 
+@media (max-width: 768px) {
+  .modal {
+    width: 90vw !important; /* Override inline styles */
+    max-height: 80vh;
+    margin-top: safe-area-inset-top; /* Respect notch */
+  }
+
+  .modal-backdrop {
+    align-items: center; /* Center vertically on mobile too, or flex-start? */
+    padding: 20px;
+  }
+}
+
 .modal-body {
   padding: 24px;
   overflow-y: auto;
   flex: 1;
+  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
 }
 
 /* ========================================

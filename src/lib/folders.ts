@@ -48,11 +48,13 @@ export const folderService = {
 
     const updated = await db.folders.get(id);
     if (updated) {
+      // Strip syncedAt and type before syncing (type is local-only for UI organization)
+      const { syncedAt, type, ...syncData } = updated as any;
       await db.syncQueue.add({
         entityType: "folder",
         entityId: id,
         action: "update",
-        data: updated,
+        data: syncData,
         createdAt: now,
       });
     }

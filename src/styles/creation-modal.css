@@ -55,6 +55,34 @@
     transform: translateY(-1px);
 }
 
+.btn-primary {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-text {
     padding: 10px 16px;
     border-radius: 8px;
@@ -64,6 +92,7 @@
     border: none;
     background: transparent;
     color: var(--text-secondary);
+    transition: all 0.2s;
 }
 
 .btn-text:hover {

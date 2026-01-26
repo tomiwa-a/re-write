@@ -10,13 +10,17 @@ class ReWriteDB extends Dexie {
     super("rewrite");
 
     this.version(1).stores({
-      folders: "id, parentId, updatedAt, syncedAt",
-      documents: "id, type, folderId, updatedAt, syncedAt, isArchived",
+      folders: "id, parentId, updatedAt",
+      documents: "id, type, folderId, updatedAt, isArchived",
       syncQueue: "++id, entityType, entityId, action, createdAt",
     });
 
     this.version(2).stores({
-      folders: "id, type, parentId, updatedAt, syncedAt",
+      folders: "id, type, parentId, updatedAt",
+    });
+
+    this.version(3).stores({
+      documents: "id, type, folderId, updatedAt, isArchived, isLocalOnly",
     });
   }
 }

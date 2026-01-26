@@ -1,11 +1,31 @@
-import { ShareModal } from '../components/ShareModal';
+import { ClockIcon } from '../assets/icons/clock';
 import { CloudCheckIcon } from '../assets/icons/cloud';
 import { GlobeIcon } from '../assets/icons/globe';
-import { ClockIcon } from '../assets/icons/clock';
+import { ShareModal } from '../components/ShareModal';
+import { AuthManager } from './AuthManager';
+import { SyncEngine, SyncStatus } from '../lib/sync';
+import { connectionManager } from './ConnectionManager';
 
 export class RightPaneManager {
-    constructor() {
-        // this.render();
+    private authManager: AuthManager;
+    private syncEngine: SyncEngine;
+    private currentSyncStatus: SyncStatus = 'offline';
+    private lastSyncTime: number | null = null;
+
+    constructor(authManager: AuthManager, syncEngine: SyncEngine) {
+        this.authManager = authManager;
+        this.syncEngine = syncEngine;
+        
+        this.authManager.subscribe(() => {
+            this.renderSyncStatus();
+        });
+
+        // Use SyncEngine status instead of basic connection manager
+        this.syncEngine.subscribeToStatus((status, lastSync) => {
+            this.currentSyncStatus = status;
+            this.lastSyncTime = lastSync;
+            this.renderSyncStatus();
+        });
     }
 
     public render(): void {
@@ -16,24 +36,84 @@ export class RightPaneManager {
 
     private renderSyncStatus(): void {
         const syncCard = document.getElementById('sync-status-card');
+        const user = this.authManager.currentUser;
+        const isOnline = connectionManager.isOnline;
+        
         if (syncCard) {
+            let syncText: string;
+            let connText: string;
+            let syncIconClass: string;
+            let connIconClass: string;
+
+            // Connection Status (Bottom Row)
+            if (!isOnline) {
+                connText = 'Offline';
+                connIconClass = 'warning';
+            } else {
+                 connText = 'Online';
+                 connIconClass = 'success';
+            }
+
+            // Sync Status (Top Row)
+            if (!user) {
+                syncText = 'Local Only';
+                syncIconClass = 'neutral';
+            } else {
+               switch (this.currentSyncStatus) {
+                   case 'syncing':
+                       syncText = 'Syncing...';
+                       syncIconClass = 'neutral';
+                       break;
+                   case 'synced':
+                       syncText = this.lastSyncTime ? `Synced ${this.timeAgo(this.lastSyncTime)}` : 'Synced';
+                       syncIconClass = 'success';
+                       break;
+                   case 'offline':
+                       // If we are online but sync status is offline, it typically means we haven't received the first update yet
+                       // Or we are reconnecting. The SyncEngine should eventually transition to 'synced' or 'syncing'.
+                       // If it stays here too long, it might mean the heartbeat hasn't fired or initial sync is pending.
+                       if (isOnline) {
+                           syncText = 'Waiting...';
+                           syncIconClass = 'neutral';
+                       } else {
+                           syncText = 'Pending (Offline)';
+                           syncIconClass = 'warning';
+                       }
+                       break;
+                   case 'error':
+                       syncText = 'Sync Error';
+                       syncIconClass = 'error';
+                       break;
+               }
+            }
+            
             syncCard.innerHTML = `
                 <div class="status-item">
-                    <div class="status-icon success">${CloudCheckIcon}</div>
+                    <div class="status-icon ${syncIconClass}">${CloudCheckIcon}</div>
                     <div class="status-info">
                         <span class="status-label">Sync Status</span>
-                        <span class="status-value">Synced just now</span>
+                        <span class="status-value">${syncText}</span>
                     </div>
                 </div>
                 <div class="status-item">
-                    <div class="status-icon success">${GlobeIcon}</div>
+                    <div class="status-icon ${connIconClass}">${GlobeIcon}</div>
                     <div class="status-info">
                         <span class="status-label">Connection</span>
-                        <span class="status-value">Online</span>
+                        <span class="status-value">${connText}</span>
                     </div>
                 </div>
             `;
         }
+    }
+
+    private timeAgo(timestamp: number): string {
+        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        return 'recently';
     }
 
     private renderShareCard(): void {

@@ -11,6 +11,13 @@
   top: 0;
 }
 
+@media (max-width: 600px) {
+  .editor-toolbar {
+    padding: 12px 10px;
+    gap: 4px;
+  }
+}
+
 .toolbar-group {
   display: flex;
   align-items: center;
