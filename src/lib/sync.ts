@@ -199,13 +199,22 @@ export class SyncEngine {
     
     try {
       console.log(`[SyncEngine] Pushing ${queue.length} changes to server`);
-      const changes = queue.map((item) => ({
-        id: item.id!,
-        entityType: item.entityType,
-        entityId: item.entityId,
-        action: item.action,
-        data: item.data,
-      }));
+      const changes = queue.map((item) => {
+        let data = item.data;
+        
+        if (data && typeof data === 'object' && (data as any).userId === 'local-user') {
+          console.log(`[SyncEngine] Migrating entity ${item.entityId} from local-user to ${this.userId}`);
+          data = { ...data, userId: this.userId };
+        }
+
+        return {
+          id: item.id!,
+          entityType: item.entityType,
+          entityId: item.entityId,
+          action: item.action,
+          data: data,
+        };
+      });
 
       await this.client.mutation(api.sync.push, {
         changes,
