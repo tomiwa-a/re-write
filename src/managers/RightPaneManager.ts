@@ -145,7 +145,7 @@ export class RightPaneManager {
                 { time: 'Yesterday', author: 'You', type: 'save' },
             ];
             
-            historyList.innerHTML = versions.map((v, i) => `
+            historyList.innerHTML = versions.map((v) => `
                 <div class="history-item ${v.type === 'current' ? 'active' : ''}">
                     <div class="history-icon">${ClockIcon}</div>
                     <div class="history-details">

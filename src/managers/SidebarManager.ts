@@ -673,6 +673,7 @@ export class SidebarManager {
     }
 
     // Helper Methods
+    /*
     private isDescendant(parentId: string, childId: string): boolean {
         // Check if childId is a descendant of parentId
         const checkDescendant = (folderId: string): boolean => {
@@ -697,6 +698,7 @@ export class SidebarManager {
 
         return checkDescendant(childId);
     }
+    */
 
     private async updateItemParent(itemId: string, itemType: string, newParentId?: string): Promise<void> {
         try {

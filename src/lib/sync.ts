@@ -11,7 +11,8 @@ export class SyncEngine {
   private userId: string | null = null;
   private isPushing = false;
   private unsubscribe: (() => void) | null = null;
-  private heartbeatId: number | any = null;
+  // @ts-ignore
+  private _heartbeatId: number | any = null;
   private statusSubscribers: Set<(status: SyncStatus, lastSync: number | null) => void> = new Set();
   private _status: SyncStatus = 'offline';
   private _lastSync: number | null = null;
@@ -83,7 +84,7 @@ export class SyncEngine {
   }
 
   private startHeartbeat() {
-    this.heartbeatId = setInterval(async () => {
+    this._heartbeatId = setInterval(async () => {
       const isOnline = typeof navigator !== "undefined" && navigator.onLine !== undefined ? navigator.onLine : true;
       if (!isOnline || !this.userId) return;
 
@@ -126,7 +127,7 @@ export class SyncEngine {
             await db.folders.put({
               id: folder.id,
               name: folder.name,
-              type: folder.type as any,
+              type: (folder as any).type,
               parentId: folder.parentId,
               userId: folder.userId,
               createdAt: folder.createdAt,

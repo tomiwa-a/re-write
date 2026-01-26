@@ -110,7 +110,7 @@ async function createFolder() {
   
   const parentId = els.newFolderParentSelect.value || undefined;
 
-  await folderService.create({ name, parentId, userId: currentUserId });
+  await folderService.create({ name, parentId, userId: currentUserId, type: 'note' });
   syncEngine.requestSync(); // Trigger immediate push
   els.newFolderName.value = "";
   await refreshFolders();
@@ -170,7 +170,7 @@ async function refreshDocs() {
   els.docsList.innerHTML = docs.length ? "<ul>" + docs.map(d => 
     `<li>
       [${d.type.toUpperCase()}] <strong>${d.title}</strong>
-      <br><small>Folder: ${d.folderId || "None"} |  Synced: ${d.syncedAt ? "✅" : "⏳"}</small>
+      <br><small>Folder: ${d.folderId || "None"} |  Synced: ${(d as any).syncedAt ? "✅" : "⏳"}</small>
       <button onclick="deleteDoc('${d.id}')">❌</button>
     </li>`
   ).join("") + "</ul>" : "<p>No documents found.</p>";
