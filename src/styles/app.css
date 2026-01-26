@@ -583,7 +583,8 @@
 .editor-scroll-container {
   flex: 1;
   overflow-y: auto;
-  padding: 0 20px 40px; /* Padding inside the scroll area */
+  display: flex;
+  flex-direction: column;
   /* Scrollbar Styling */
   scrollbar-width: thin;
   scrollbar-color: #D1D1D1 transparent;
@@ -601,9 +602,16 @@
 }
 
 .editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 100%;
   outline: none;
-  /* Editor itself just fills the container */
+}
+
+/* Add padding only for Tiptap editor to keep drawing tools full-bleed */
+.ProseMirror {
+  padding: 40px 20px;
 }
 
 

@@ -62,9 +62,37 @@ export class EditorManager {
         // Switch based on type
         if (doc.type === 'canvas') {
             await this.openCanvas(doc);
+        } else if (doc.type === 'erd') {
+            await this.openERD(doc);
         } else {
             await this.openTiptap(doc);
         }
+    }
+
+    private async openERD(doc: any) {
+        console.log('[EditorManager] Opening ERD editor');
+        const { mountERD } = await import('../components/mountERD');
+        
+        // Hide toolbar for ERD 
+        if (this.toolbarEl) this.toolbarEl.style.display = 'none';
+        
+        this.editorEl.innerHTML = '';
+        mountERD(this.editorEl, {
+            initialContent: doc.content,
+            onChange: (newContent: any) => {
+                this.handleERDChange(newContent);
+            }
+        });
+    }
+
+    private handleERDChange(content: any) {
+        if (this.saveTimeout) clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(async () => {
+            if (this.currentDocId) {
+                console.log('[EditorManager] Auto-saving ERD:', this.currentDocId);
+                await documentService.update(this.currentDocId, { content });
+            }
+        }, 1000);
     }
 
     private async openCanvas(doc: any) {
@@ -124,10 +152,11 @@ export class EditorManager {
             this.editor = null;
         }
 
-        // Unmount Canvas if active
-        // dynamic import to avoid eager loading
+        // Unmount Canvas/ERD if active
         const { unmountCanvas } = await import('../components/mountCanvas');
+        const { unmountERD } = await import('../components/mountERD');
         unmountCanvas();
+        unmountERD();
         
         // Clear container
         if (this.editorEl) {

@@ -1,0 +1,179 @@
+.erd-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: relative;
+  background: #f8fafc;
+}
+
+.erd-canvas {
+  flex-grow: 1;
+  height: 100%;
+}
+
+.erd-sidebar {
+  width: 320px;
+  background: white;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.02);
+}
+
+/* Database Table Node */
+.table-node {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.table-node.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.table-node-header {
+  background: #475569;
+  color: white;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-node-content {
+  padding: 8px 0;
+}
+
+.table-column {
+  padding: 6px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+  position: relative;
+}
+
+.table-column:last-child {
+  border-bottom: none;
+}
+
+.column-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.column-type {
+  color: var(--text-secondary);
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.pk-icon {
+  color: #fbbf24;
+  font-size: 0.7rem;
+}
+
+/* Form Styles */
+.erd-form-section {
+  margin-bottom: 24px;
+}
+
+.erd-form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.erd-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.erd-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.column-editor-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.btn-add-column {
+  width: 100%;
+  padding: 10px;
+  background: var(--bg-primary);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* Button Utilities for ERD */
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Connection Styles */
+.react-flow__edge-path {
+  stroke: #94a3b8;
+  stroke-width: 2;
+  transition: stroke 0.2s;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #94a3b8;
+  border: 2px solid white;
+}
+
+.react-flow__handle:hover {
+  background: var(--accent);
+}
