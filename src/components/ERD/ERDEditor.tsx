@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
@@ -26,7 +26,14 @@ interface ERDEditorProps {
 export const ERDEditor: React.FC<ERDEditorProps> = ({ initialContent, onChange }) => {
   const [nodes, setNodes] = useState<Node[]>(initialContent?.nodes || []);
   const [edges, setEdges] = useState<Edge[]>(initialContent?.edges || []);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  
+  // Floating widget state
+  const [sidebarPos, setSidebarPos] = useState({ x: 200, y: 50 }); // Moved it slightly so it doesn't block top-left buttons
+  const [isDraggingSidebar, setIsDraggingSidebar] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+
+  const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
   const onNodesChange = useCallback(
     (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -44,11 +51,11 @@ export const ERDEditor: React.FC<ERDEditorProps> = ({ initialContent, onChange }
   );
 
   const onNodeClick = useCallback((_: any, node: Node) => {
-    setSelectedNode(node);
+    setSelectedNodeId(node.id);
   }, []);
 
   const onPaneClick = useCallback(() => {
-    setSelectedNode(null);
+    setSelectedNodeId(null);
   }, []);
 
   // Save changes
@@ -70,7 +77,7 @@ export const ERDEditor: React.FC<ERDEditorProps> = ({ initialContent, onChange }
       },
     };
     setNodes((nds) => nds.concat(newNode));
-    setSelectedNode(newNode);
+    setSelectedNodeId(id);
   };
 
   const updateNodeData = (nodeId: string, newData: any) => {
@@ -82,11 +89,41 @@ export const ERDEditor: React.FC<ERDEditorProps> = ({ initialContent, onChange }
         return node;
       })
     );
-    // Update selected node state too
-    if (selectedNode?.id === nodeId) {
-      setSelectedNode({ ...selectedNode, data: newData });
+  };
+
+  // Draggable logic for sidebar
+  const onSidebarMouseDown = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('.draggable-handle')) {
+        setIsDraggingSidebar(true);
+        dragOffset.current = {
+            x: e.clientX - sidebarPos.x,
+            y: e.clientY - sidebarPos.y
+        };
+        e.stopPropagation();
     }
   };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+        if (isDraggingSidebar) {
+            setSidebarPos({
+                x: e.clientX - dragOffset.current.x,
+                y: e.clientY - dragOffset.current.y
+            });
+        }
+    };
+    const handleMouseUp = () => setIsDraggingSidebar(false);
+
+    if (isDraggingSidebar) {
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingSidebar]);
 
   return (
     <div className="erd-container">
@@ -109,15 +146,27 @@ export const ERDEditor: React.FC<ERDEditorProps> = ({ initialContent, onChange }
               + Add Table
             </button>
           </Panel>
+
+          {selectedNode && (
+            <div 
+              style={{ 
+                position: 'absolute', 
+                left: sidebarPos.x, 
+                top: sidebarPos.y,
+                zIndex: 1000
+              }}
+              onMouseDown={onSidebarMouseDown}
+            >
+              <ERDSidebar 
+                node={selectedNode} 
+                onUpdate={(data) => updateNodeData(selectedNode.id, data)}
+                onClose={() => setSelectedNodeId(null)}
+              />
+            </div>
+          )}
         </ReactFlow>
       </div>
-
-      {selectedNode && (
-        <ERDSidebar 
-          node={selectedNode} 
-          onUpdate={(data) => updateNodeData(selectedNode.id, data)}
-        />
-      )}
     </div>
   );
 };
+
