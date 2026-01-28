@@ -5,8 +5,9 @@
   --bg-grid: #e5e5e5;
   --text-primary: #2c2c2c;
   --text-secondary: #666666;
-  --accent: #22c55e;
-  --accent-hover: #16a34a;
+  --accent: #EC4899; /* Pink */
+  --accent-hover: #DB2777;
+  --accent-rgb: 236, 72, 153;
   --border: rgba(0, 0, 0, 0.08);
   --shadow: 0 4px 20px rgba(0,0,0,0.05); /* Soft shadow for paper */
   --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
