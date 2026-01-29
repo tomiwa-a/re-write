@@ -142,41 +142,121 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
     event.preventDefault();
   });
 
-  let isResizing = false;
+  let resizeWrapper: HTMLDivElement | null = null;
   let currentImage: HTMLImageElement | null = null;
+  let resizeHandle: string | null = null;
   let startX = 0;
+  let startY = 0;
   let startWidth = 0;
+  let startHeight = 0;
+
+  function createResizeHandles(img: HTMLImageElement): HTMLDivElement {
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('data-resize-wrapper', 'true');
+    wrapper.style.position = 'relative';
+    wrapper.style.display = 'inline-block';
+    wrapper.style.maxWidth = '100%';
+
+    const handles = [
+      'top-left', 'top', 'top-right',
+      'left', 'right',
+      'bottom-left', 'bottom', 'bottom-right'
+    ];
+
+    handles.forEach(handle => {
+      const handleEl = document.createElement('div');
+      handleEl.setAttribute('data-resize-handle', handle);
+      wrapper.appendChild(handleEl);
+    });
+
+    img.parentNode?.insertBefore(wrapper, img);
+    wrapper.appendChild(img);
+    wrapper.setAttribute('data-resize-state', 'true');
+
+    return wrapper;
+  }
+
+  function removeResizeHandles() {
+    if (resizeWrapper) {
+      const img = resizeWrapper.querySelector('img');
+      if (img) {
+        resizeWrapper.parentNode?.insertBefore(img, resizeWrapper);
+      }
+      resizeWrapper.remove();
+      resizeWrapper = null;
+    }
+  }
+
+  editorInstance.on('selectionUpdate', ({ editor }) => {
+    removeResizeHandles();
+    
+    const { selection } = editor.state;
+    const { $from } = selection;
+    const node = $from.node();
+    
+    if (node.type.name === 'image') {
+      setTimeout(() => {
+        const imgElement = editorElement.querySelector('img[src="' + node.attrs.src + '"]') as HTMLImageElement;
+        if (imgElement && !resizeWrapper) {
+          resizeWrapper = createResizeHandles(imgElement);
+          currentImage = imgElement;
+        }
+      }, 10);
+    }
+  });
 
   editorElement.addEventListener('mousedown', (e) => {
     const target = e.target as HTMLElement;
-    if (target.tagName === 'IMG') {
-      const img = target as HTMLImageElement;
-      const rect = img.getBoundingClientRect();
-      const isNearRightEdge = e.clientX > rect.right - 10;
-      const isNearBottomEdge = e.clientY > rect.bottom - 10;
-      
-      if (isNearRightEdge || isNearBottomEdge) {
-        e.preventDefault();
-        isResizing = true;
-        currentImage = img;
-        startX = e.clientX;
-        startWidth = img.width || img.naturalWidth;
-        document.body.style.cursor = 'nwse-resize';
-      }
+    const handle = target.getAttribute('data-resize-handle');
+    
+    if (handle && resizeWrapper && currentImage) {
+      e.preventDefault();
+      e.stopPropagation();
+      resizeHandle = handle;
+      startX = e.clientX;
+      startY = e.clientY;
+      startWidth = currentImage.offsetWidth;
+      startHeight = currentImage.offsetHeight;
     }
   });
 
   document.addEventListener('mousemove', (e) => {
-    if (isResizing && currentImage && editorInstance) {
-      const diff = e.clientX - startX;
-      const newWidth = Math.max(100, startWidth + diff);
+    if (resizeHandle && currentImage && resizeWrapper) {
+      e.preventDefault();
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+
+      if (resizeHandle.includes('right')) {
+        newWidth = Math.max(100, startWidth + deltaX);
+      } else if (resizeHandle.includes('left')) {
+        newWidth = Math.max(100, startWidth - deltaX);
+      }
+
+      if (resizeHandle.includes('bottom')) {
+        newHeight = Math.max(100, startHeight + deltaY);
+      } else if (resizeHandle.includes('top')) {
+        newHeight = Math.max(100, startHeight - deltaY);
+      }
+
+      const aspectRatio = startWidth / startHeight;
+      if (resizeHandle.includes('left') || resizeHandle.includes('right')) {
+        newHeight = newWidth / aspectRatio;
+      } else if (resizeHandle.includes('top') || resizeHandle.includes('bottom')) {
+        newWidth = newHeight * aspectRatio;
+      }
+
       currentImage.style.width = `${newWidth}px`;
-      currentImage.style.height = 'auto';
+      currentImage.style.height = `${newHeight}px`;
+      resizeWrapper.style.width = `${newWidth}px`;
+      resizeWrapper.style.height = `${newHeight}px`;
     }
   });
 
   document.addEventListener('mouseup', () => {
-    if (isResizing && currentImage && editorInstance) {
+    if (resizeHandle && currentImage && editorInstance) {
       const finalWidth = currentImage.style.width;
       const pos = editorInstance.view.posAtDOM(currentImage, 0);
       
@@ -185,9 +265,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
         .updateAttributes('image', { width: finalWidth })
         .run();
     }
-    isResizing = false;
-    currentImage = null;
-    document.body.style.cursor = '';
+    resizeHandle = null;
   });
 
   setupToolbar(toolbarElement, editorInstance);
