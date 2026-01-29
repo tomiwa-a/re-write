@@ -6,6 +6,9 @@ import * as Y from 'yjs';
 import Collaboration from '@tiptap/extension-collaboration';
 import { ConvexProvider } from '../lib/ConvexProvider';
 import { IndexeddbPersistence } from 'y-indexeddb';
+import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import { prosemirrorToYXmlFragment } from 'y-prosemirror';
 
 export class EditorManager {
     private editor: Editor | null = null;
@@ -66,14 +69,12 @@ export class EditorManager {
         
         console.log('[EditorManager] Document loaded:', { id: doc.id, type: doc.type });
 
-        // Switch based on type
         if (doc.type === 'canvas') {
             await this.openCanvas(doc);
         } else {
             await this.openTiptap(doc);
         }
         
-        // Allow updates after a tick
         setTimeout(() => {
             this.isLoaded = true;
         }, 100);
@@ -105,26 +106,68 @@ export class EditorManager {
 
         this.persistence = new IndexeddbPersistence(doc.id, this.ydoc);
         
-        this.persistence.on('synced', () => {
+        this.persistence.on('synced', async () => {
             console.log('[EditorManager] Y.js local persistence loaded');
-        });
+            
+            if (!this.ydoc) return;
+            
+            const fragment = this.ydoc.getXmlFragment('default');
+            const isEmpty = fragment.length === 0;
+            
+            console.log('[EditorManager] Migration check:', { 
+                isEmpty, 
+                hasContent: !!doc.content,
+                contentType: typeof doc.content,
+                fragmentLength: fragment.length 
+            });
+            
+            if (isEmpty && doc.content) {
+                console.log('[EditorManager] Migrating content to Y.js');
+                console.log('[EditorManager] Content to migrate:', doc.content);
+                
+                const tempEditor = new Editor({
+                    extensions: [
+                        StarterKit.configure({
+                            undoRedo: false
+                        }),
+                        TextAlign.configure({ types: ['heading', 'paragraph'] }),
+                    ],
+                    content: doc.content,
+                });
+                
+                const prosemirrorDoc = tempEditor.state.doc;
+                const fragment = this.ydoc.getXmlFragment('default');
+                
+                prosemirrorToYXmlFragment(prosemirrorDoc, fragment);
+                
+                tempEditor.destroy();
+                
+                const fragmentAfter = this.ydoc.getXmlFragment('default');
+                console.log('[EditorManager] Fragment length after migration:', fragmentAfter.length);
+                
+                console.log('[EditorManager] Clearing doc.content in database');
+                documentService.update(doc.id, { content: null });
+            }
 
-        this.convexProvider = new ConvexProvider(this.convexClient, doc.id, this.ydoc);
-        
-        const extensions = [
-            Collaboration.configure({
-                document: this.ydoc,
-            })
-        ];
+            if (!this.editor) {
+                this.convexProvider = new ConvexProvider(this.convexClient, doc.id, this.ydoc);
+                
+                const extensions = [
+                    Collaboration.configure({
+                        document: this.ydoc,
+                    })
+                ];
 
-        this.editor = createEditor(this.editorEl, this.toolbarEl, doc.content || '', extensions);
-        this.editor.setEditable(true);
-        
-        this.editor.on('update', () => {
-             this.scheduleSave();
+                this.editor = createEditor(this.editorEl, this.toolbarEl, '', extensions);
+                this.editor.setEditable(true);
+                
+                this.editor.on('update', () => {
+                     this.scheduleSave();
+                });
+                
+                console.log('[EditorManager] Tiptap instance created with Y.js');
+            }
         });
-        
-        console.log('[EditorManager] Tiptap instance created with Y.js');
     }
 
     public async destroy(): Promise<void> {
@@ -150,7 +193,6 @@ export class EditorManager {
             this.ydoc = null;
         }
 
-        // Unmount Canvas if active
         const { unmountCanvas } = await import('../components/mountCanvas');
         unmountCanvas();
         
