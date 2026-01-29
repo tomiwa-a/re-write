@@ -43,4 +43,11 @@ export default defineSchema({
   })
     .index("by_token", ["token"])
     .index("by_document", ["documentId"]),
+
+  document_updates: defineTable({
+    documentId: v.string(),
+    update: v.bytes(), 
+    clientId: v.number(), 
+  })
+    .index("by_document", ["documentId"]),
 });
