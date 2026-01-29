@@ -28,7 +28,7 @@ class App {
     console.log('[App] Constructor started');
     this.convexClient = new ConvexClient(import.meta.env.VITE_CONVEX_URL);
     this.syncEngine = new SyncEngine(this.convexClient);
-    this.editorManager = new EditorManager();
+    this.editorManager = new EditorManager(this.syncEngine);
     this.authManager = new AuthManager(this.convexClient);
     
     // Connect Auth to Sync

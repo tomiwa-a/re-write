@@ -43,6 +43,18 @@ export class SyncEngine {
     return () => this.statusSubscribers.delete(callback);
   }
 
+  private entitySubscribers: Set<(changes: { folders: string[], documents: string[] }) => void> = new Set();
+
+  public subscribeToEntities(callback: (changes: { folders: string[], documents: string[] }) => void): () => void {
+    this.entitySubscribers.add(callback);
+    return () => this.entitySubscribers.delete(callback);
+  }
+
+  private notifyEntityChanges(folders: string[], documents: string[]) {
+    if (folders.length === 0 && documents.length === 0) return;
+    this.entitySubscribers.forEach(cb => cb({ folders, documents }));
+  }
+
   private updateStatus(status: SyncStatus) {
     this._status = status;
     this.notifyStatus();
@@ -148,6 +160,8 @@ export class SyncEngine {
             });
           }
         });
+
+        this.notifyEntityChanges(folders.map(f => f.id), documents.map(d => d.id));
 
         localStorage.setItem("lastSync", timestamp.toString());
         this._lastSync = timestamp;
