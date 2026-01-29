@@ -48,7 +48,14 @@ export const folderService = {
 
     const updated = await db.folders.get(id);
     if (updated) {
-      const { syncedAt, type, ...syncData } = updated as any;
+      // Strip syncedAt and type before syncing (type is local-only for UI organization)
+      const { syncedAt, isLocalOnly, ...syncData } = updated as any;
+      
+      // Explicitly set parentId to null if it's undefined (moved to root)
+      if (syncData.parentId === undefined) {
+        syncData.parentId = null;
+      }
+
       await db.syncQueue.add({
         entityType: "folder",
         entityId: id,
