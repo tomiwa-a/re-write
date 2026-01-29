@@ -23,6 +23,7 @@ import { TableHeader } from "@tiptap/extension-table-header";
 import Image from "@tiptap/extension-image";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import Dropcursor from "@tiptap/extension-dropcursor";
 
 import Placeholder from "@tiptap/extension-placeholder";
 import HardBreak from "@tiptap/extension-hard-break";
@@ -91,7 +92,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
         inline: false,
         allowBase64: true,
         HTMLAttributes: {
-          class: 'tiptap-image',
+          class: 'editor-image',
         },
       }),
       TaskList,
@@ -101,6 +102,10 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
           class: 'tiptap-task-item',
         },
       }),
+      Dropcursor.configure({
+        color: '#3b82f6',
+        width: 2,
+      }),
  
       Placeholder.configure({ placeholder: "Start writing..." }),
       HardBreak,
@@ -109,6 +114,80 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
     content: initialContent,
     autofocus: true,
     editable: true,
+  });
+
+  editorElement.addEventListener('drop', (event) => {
+    event.preventDefault();
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    const imageFile = Array.from(files).find(file => file.type.startsWith('image/'));
+    if (!imageFile) return;
+
+    console.log('[Drag-Drop] Image dropped:', imageFile.name);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      if (base64 && editorInstance && !editorInstance.isDestroyed) {
+        editorInstance.chain().insertContent({
+          type: 'image',
+          attrs: { src: base64 }
+        }).run();
+      }
+    };
+    reader.readAsDataURL(imageFile);
+  });
+
+  editorElement.addEventListener('dragover', (event) => {
+    event.preventDefault();
+  });
+
+  let isResizing = false;
+  let currentImage: HTMLImageElement | null = null;
+  let startX = 0;
+  let startWidth = 0;
+
+  editorElement.addEventListener('mousedown', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG') {
+      const img = target as HTMLImageElement;
+      const rect = img.getBoundingClientRect();
+      const isNearRightEdge = e.clientX > rect.right - 10;
+      const isNearBottomEdge = e.clientY > rect.bottom - 10;
+      
+      if (isNearRightEdge || isNearBottomEdge) {
+        e.preventDefault();
+        isResizing = true;
+        currentImage = img;
+        startX = e.clientX;
+        startWidth = img.width || img.naturalWidth;
+        document.body.style.cursor = 'nwse-resize';
+      }
+    }
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isResizing && currentImage && editorInstance) {
+      const diff = e.clientX - startX;
+      const newWidth = Math.max(100, startWidth + diff);
+      currentImage.style.width = `${newWidth}px`;
+      currentImage.style.height = 'auto';
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing && currentImage && editorInstance) {
+      const finalWidth = currentImage.style.width;
+      const pos = editorInstance.view.posAtDOM(currentImage, 0);
+      
+      editorInstance.chain()
+        .setNodeSelection(pos)
+        .updateAttributes('image', { width: finalWidth })
+        .run();
+    }
+    isResizing = false;
+    currentImage = null;
+    document.body.style.cursor = '';
   });
 
   setupToolbar(toolbarElement, editorInstance);
@@ -264,7 +343,7 @@ function setupToolbar(toolbar: HTMLElement, editor: Editor): void {
         editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
         break;
       case "image":
-        handleImageUpload(editor);
+        handleImageUpload();
         break;
     }
 
@@ -301,7 +380,7 @@ function handleLink(editor: Editor): void {
   editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
 }
 
-function handleImageUpload(editor: Editor): void {
+function handleImageUpload(): void {
   console.log('[handleImageUpload] Starting image upload');
   const input = document.createElement('input');
   input.type = 'file';

@@ -266,6 +266,27 @@
   outline-offset: 2px;
 }
 
+.ProseMirror img,
+.ProseMirror .editor-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1em auto;
+  border-radius: 4px;
+  cursor: default;
+  user-select: none;
+}
+
+.ProseMirror img:hover {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.ProseMirror img.ProseMirror-selectednode,
+.ProseMirror .editor-image.ProseMirror-selectednode {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 .ProseMirror ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
