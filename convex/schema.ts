@@ -50,4 +50,13 @@ export default defineSchema({
     clientId: v.number(), 
   })
     .index("by_document", ["documentId"]),
+
+  document_presence: defineTable({
+    documentId: v.string(),
+    clientId: v.number(),
+    user: v.any(), // JSON object for name, color, etc.
+    updatedAt: v.number(),
+  })
+    .index("by_document", ["documentId"])
+    .index("by_client", ["documentId", "clientId"]),
 });

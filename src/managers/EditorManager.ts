@@ -7,6 +7,10 @@ import Collaboration from '@tiptap/extension-collaboration';
 import { ConvexProvider } from '../lib/ConvexProvider';
 import { IndexeddbPersistence } from 'y-indexeddb';
 
+const colors = ['#958DF1', '#F98181', '#FBBC88', '#FAF594', '#70CFF8', '#94FADB', '#B9F18D'];
+const randomColor = colors[Math.floor(Math.random() * colors.length)];
+const randomName = `User ${Math.floor(Math.random() * 1000)}`;
+
 export class EditorManager {
     private editor: Editor | null = null;
     private editorEl: HTMLElement;
@@ -111,6 +115,12 @@ export class EditorManager {
 
         this.convexProvider = new ConvexProvider(this.convexClient, doc.id, this.ydoc);
         
+        // 3. User Identity (Awareness)
+        this.convexProvider.awareness.setLocalStateField('user', {
+            name: randomName,
+            color: randomColor,
+        });
+
         const extensions = [
             Collaboration.configure({
                 document: this.ydoc,
@@ -151,8 +161,9 @@ export class EditorManager {
         }
 
         // Unmount Canvas if active
+        // @ts-ignore
         const { unmountCanvas } = await import('../components/mountCanvas');
-        unmountCanvas();
+        if (unmountCanvas) unmountCanvas();
         
         if (this.editorEl) {
             this.editorEl.innerHTML = '';
