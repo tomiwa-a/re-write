@@ -158,7 +158,7 @@ export class EditorManager {
                     })
                 ];
 
-                this.editor = createEditor(this.editorEl, this.toolbarEl, '', extensions);
+                this.editor = createEditor(this.editorEl, this.toolbarEl, '', extensions, this.convexClient, doc.id);
                 this.editor.setEditable(true);
                 
                 this.editor.on('update', () => {

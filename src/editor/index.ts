@@ -28,9 +28,14 @@ import Dropcursor from "@tiptap/extension-dropcursor";
 import Placeholder from "@tiptap/extension-placeholder";
 import HardBreak from "@tiptap/extension-hard-break";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
+import { ConvexClient } from "convex/browser";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
+let currentConvex: ConvexClient | null = null;
+let currentDocId: Id<"documents"> | null = null;
 
 function setupRightPaneToggle() {
   if (rightPaneToggleListenerAdded) return;
@@ -48,8 +53,19 @@ function setupRightPaneToggle() {
   rightPaneToggleListenerAdded = true;
 }
 
-export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLElement, initialContent: any = "", extraExtensions: any[] = []): Editor {
+export function createEditor(
+  editorElement: HTMLElement,
+  toolbarElement: HTMLElement,
+  initialContent: any = "",
+  extraExtensions: any[] = [],
+  convex?: ConvexClient,
+  documentId?: string
+): Editor {
   console.log('[createEditor] Initializing Tiptap editor');
+  
+  if (convex) currentConvex = convex;
+  if (documentId) currentDocId = documentId as Id<"documents">;
+  
   if (editorInstance) {
     console.log('[createEditor] Destroying existing instance');
     editorInstance.destroy();
@@ -116,7 +132,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
     editable: true,
   });
 
-  editorElement.addEventListener('drop', (event) => {
+  editorElement.addEventListener('drop', async (event) => {
     event.preventDefault();
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
@@ -124,18 +140,36 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
     const imageFile = Array.from(files).find(file => file.type.startsWith('image/'));
     if (!imageFile) return;
 
-    console.log('[Drag-Drop] Image dropped:', imageFile.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target?.result as string;
-      if (base64 && editorInstance && !editorInstance.isDestroyed) {
-        editorInstance.chain().insertContent({
-          type: 'image',
-          attrs: { src: base64 }
-        }).run();
-      }
-    };
-    reader.readAsDataURL(imageFile);
+    if (!currentConvex || !currentDocId || !editorInstance || editorInstance.isDestroyed) {
+      console.error('[Drag-Drop] Required dependencies not available');
+      return;
+    }
+
+    try {
+      console.log('[Drag-Drop] Uploading image:', imageFile.name);
+      
+      const uploadUrl = await currentConvex.mutation(api.images.generateUploadUrl, {});
+      
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": imageFile.type },
+        body: imageFile,
+      });
+      
+      const { storageId } = await result.json();
+      
+      const { url } = await currentConvex.mutation(api.images.saveImage, {
+        storageId,
+        documentId: currentDocId,
+      });
+      
+      editorInstance.chain().insertContent({
+        type: 'image',
+        attrs: { src: url }
+      }).run();
+    } catch (error) {
+      console.error('[Drag-Drop] Upload failed:', error);
+    }
   });
 
   editorElement.addEventListener('dragover', (event) => {
@@ -464,7 +498,7 @@ function handleImageUpload(): void {
   input.type = 'file';
   input.accept = 'image/*';
   
-  input.onchange = (e) => {
+  input.onchange = async (e) => {
     console.log('[handleImageUpload] File selected');
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) {
@@ -472,33 +506,43 @@ function handleImageUpload(): void {
       return;
     }
     
-    console.log('[handleImageUpload] Reading file:', file.name, file.size);
-    const reader = new FileReader();
-    reader.onload = (readerEvent) => {
-      const base64 = readerEvent.target?.result as string;
-      console.log('[handleImageUpload] File read complete, base64 length:', base64?.length);
+    if (!currentConvex || !currentDocId) {
+      console.error('[handleImageUpload] Convex client or document ID not available');
+      return;
+    }
+    
+    if (!editorInstance || editorInstance.isDestroyed) {
+      console.error('[handleImageUpload] Editor instance not available or destroyed');
+      return;
+    }
+    
+    try {
+      console.log('[handleImageUpload] Uploading to Convex:', file.name, file.size);
       
-      if (!editorInstance || editorInstance.isDestroyed) {
-        console.error('[handleImageUpload] Editor instance not available or destroyed');
-        return;
-      }
+      const uploadUrl = await currentConvex.mutation(api.images.generateUploadUrl, {});
       
-      if (base64) {
-        console.log('[handleImageUpload] Inserting image into editor');
-        try {
-          const result = editorInstance.chain().insertContent({
-            type: 'image',
-            attrs: {
-              src: base64,
-            }
-          }).run();
-          console.log('[handleImageUpload] Insert result:', result);
-        } catch (error) {
-          console.error('[handleImageUpload] Error inserting image:', error);
-        }
-      }
-    };
-    reader.readAsDataURL(file);
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      
+      const { storageId } = await result.json();
+      
+      const { url } = await currentConvex.mutation(api.images.saveImage, {
+        storageId,
+        documentId: currentDocId,
+      });
+      
+      console.log('[handleImageUpload] Image uploaded, URL:', url);
+      
+      editorInstance.chain().insertContent({
+        type: 'image',
+        attrs: { src: url }
+      }).run();
+    } catch (error) {
+      console.error('[handleImageUpload] Upload failed:', error);
+    }
   };
   
   input.click();

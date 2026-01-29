@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as collaboration from "../collaboration.js";
 import type * as http from "../http.js";
+import type * as images from "../images.js";
 import type * as sync from "../sync.js";
 import type * as users from "../users.js";
 
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   collaboration: typeof collaboration;
   http: typeof http;
+  images: typeof images;
   sync: typeof sync;
   users: typeof users;
 }>;
