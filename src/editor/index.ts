@@ -150,6 +150,12 @@ function setupToolbar(toolbar: HTMLElement, editor: Editor): void {
     const button = target.closest("button");
     if (!button) return;
 
+    if (button.id === 'mobile-right-sidebar-toggle') {
+      e.stopPropagation();
+      document.body.classList.toggle('right-pane-open');
+      return;
+    }
+
     const action = button.dataset.action;
     if (!action) return;
 
