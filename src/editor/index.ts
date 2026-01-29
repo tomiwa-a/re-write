@@ -22,6 +22,23 @@ import HardBreak from "@tiptap/extension-hard-break";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 
 let editorInstance: Editor | null = null;
+let rightPaneToggleListenerAdded = false;
+
+function setupRightPaneToggle() {
+  if (rightPaneToggleListenerAdded) return;
+  
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const button = target.closest("#mobile-right-sidebar-toggle");
+    
+    if (button) {
+      e.stopPropagation();
+      document.body.classList.toggle('right-pane-open');
+    }
+  });
+  
+  rightPaneToggleListenerAdded = true;
+}
 
 export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLElement, initialContent: any = "", extraExtensions: any[] = []): Editor {
   console.log('[createEditor] Initializing Tiptap editor');
@@ -29,6 +46,8 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
     console.log('[createEditor] Destroying existing instance');
     editorInstance.destroy();
   }
+
+  setupRightPaneToggle();
 
   console.log('[createEditor] Creating new Editor instance');
   editorInstance = new Editor({
@@ -149,12 +168,6 @@ function setupToolbar(toolbar: HTMLElement, editor: Editor): void {
     const target = e.target as HTMLElement;
     const button = target.closest("button");
     if (!button) return;
-
-    if (button.id === 'mobile-right-sidebar-toggle') {
-      e.stopPropagation();
-      document.body.classList.toggle('right-pane-open');
-      return;
-    }
 
     const action = button.dataset.action;
     if (!action) return;
