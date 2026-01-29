@@ -5,6 +5,7 @@ import { ConvexClient } from "convex/browser";
 import * as Y from 'yjs';
 import Collaboration from '@tiptap/extension-collaboration';
 import { ConvexProvider } from '../lib/ConvexProvider';
+import { IndexeddbPersistence } from 'y-indexeddb';
 
 export class EditorManager {
     private editor: Editor | null = null;
@@ -12,6 +13,7 @@ export class EditorManager {
     private toolbarEl: HTMLElement;
     private convexClient: ConvexClient;
     private convexProvider: ConvexProvider | null = null;
+    private persistence: IndexeddbPersistence | null = null;
     private ydoc: Y.Doc | null = null;
 
     private currentDocId: string | null = null;
@@ -100,7 +102,13 @@ export class EditorManager {
         if (this.toolbarEl) this.toolbarEl.style.display = 'flex';
         
         this.ydoc = new Y.Doc();
+
+        this.persistence = new IndexeddbPersistence(doc.id, this.ydoc);
         
+        this.persistence.on('synced', () => {
+            console.log('[EditorManager] Y.js local persistence loaded');
+        });
+
         this.convexProvider = new ConvexProvider(this.convexClient, doc.id, this.ydoc);
         
         const extensions = [
@@ -132,6 +140,11 @@ export class EditorManager {
             this.convexProvider = null;
         }
         
+        if (this.persistence) {
+            this.persistence.destroy();
+            this.persistence = null;
+        }
+
         if (this.ydoc) {
             this.ydoc.destroy();
             this.ydoc = null;

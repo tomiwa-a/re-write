@@ -86,6 +86,11 @@ export const documentService = {
     if (updated && !updated.isLocalOnly) {
       // Strip syncedAt and isLocalOnly before syncing
       const { syncedAt, isLocalOnly, ...syncData } = updated as any;
+      
+      if (syncData.folderId === undefined) {
+        syncData.folderId = null;
+      }
+
       await db.syncQueue.add({
         entityType: "document",
         entityId: id,
