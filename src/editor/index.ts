@@ -16,7 +16,7 @@ import CodeBlock from "@tiptap/extension-code-block";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
-import History from "@tiptap/extension-history";
+
 import Placeholder from "@tiptap/extension-placeholder";
 import HardBreak from "@tiptap/extension-hard-break";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
@@ -52,40 +52,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
       Link.configure({ openOnClick: false }),
       Highlight,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
-      // Disable History if using Y.js, BUT standard Collaboration extension handles history automatically (updates Y.UndoManager).
-      // However, if we pass History extension manually here, it might conflict. 
-      // The Collaboration extension usually requires us to NOT add History extension if we want Y.js history.
-      // Or we should conditionally add History. 
-      // For now, let's include History here, but the caller (EditorManager) can filter it out or we can make it optional.
-      // Actually, simplest is to remove History from here and add it in caller if NOT collaborative, or just accept that we have a duplicate?
-      // No, duplicate history is bad. 
-      // Let's remove History from default list and add it only if NOT collaborative? 
-      // Or just leave it and let user fix? 
-      // Better: check if extraExtensions includes Collaboration. 
-      // But we can't easily check types here. 
-      // Let's remove History from defaults here and rely on caller to pass it? 
-      // No, that breaks existing code.
-      // Let's just leave History for now. Tiptap Collaboration notes say: "Remove the History extension from your editor setup".
-      // So I shoud REMOVE it from here and add it via extraExtensions if needed? 
-      // Or make this function smarter. 
-      // I'll make it remove History if extraExtensions has something. 
-      // Actually, passing `history: false` to StarterKit works, but we don't use StarterKit.
-      // I will remove `History` from the default list below and add it ONLY if `extraExtensions` is empty? 
-      // Or better: `enableHistory` param.
-      // For now, I'll validly assume if extraExtensions is passed, we might want to skip History.
-      // Let's just remove History from here and add it in the Caller (EditorManager) for normal mode?
-      // No, that changes behavior for everyone.
-      // I'll filter it out if extraExtensions are present? No.
-      // I will ADD `History` to the list. If `EditorManager` passes Collaboration, it should probably be removed?
-      // Let's update `EditorManager` to use a different factory or just duplicate the config.
-      // Actually, I can just `configure` History to be false? No.
-      // I will change the signature to: `enableHistory = true`.
-      
-      // For now, let's keep it simple: I will NOT remove History here. I will remove it in the caller if I can? 
-      // No, I can't remove it from `extensions` array easily if it's hardcoded here.
-      // I MUST remove `History` from this list to support Y.js.
-      // I will return `History` only if `enableHistory` is true.
-      History, 
+ 
       Placeholder.configure({ placeholder: "Start writing..." }),
       HardBreak,
       ...extraExtensions,
