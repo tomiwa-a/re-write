@@ -88,7 +88,7 @@ export function createEditor(editorElement: HTMLElement, toolbarElement: HTMLEle
       TableCell,
       TableHeader,
       Image.configure({
-        inline: true,
+        inline: false,
         allowBase64: true,
         HTMLAttributes: {
           class: 'tiptap-image',
@@ -302,19 +302,43 @@ function handleLink(editor: Editor): void {
 }
 
 function handleImageUpload(editor: Editor): void {
+  console.log('[handleImageUpload] Starting image upload');
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
   
   input.onchange = (e) => {
+    console.log('[handleImageUpload] File selected');
     const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('[handleImageUpload] No file selected');
+      return;
+    }
     
+    console.log('[handleImageUpload] Reading file:', file.name, file.size);
     const reader = new FileReader();
     reader.onload = (readerEvent) => {
       const base64 = readerEvent.target?.result as string;
+      console.log('[handleImageUpload] File read complete, base64 length:', base64?.length);
+      
+      if (!editorInstance || editorInstance.isDestroyed) {
+        console.error('[handleImageUpload] Editor instance not available or destroyed');
+        return;
+      }
+      
       if (base64) {
-        editor.chain().focus().setImage({ src: base64 }).run();
+        console.log('[handleImageUpload] Inserting image into editor');
+        try {
+          const result = editorInstance.chain().insertContent({
+            type: 'image',
+            attrs: {
+              src: base64,
+            }
+          }).run();
+          console.log('[handleImageUpload] Insert result:', result);
+        } catch (error) {
+          console.error('[handleImageUpload] Error inserting image:', error);
+        }
       }
     };
     reader.readAsDataURL(file);
