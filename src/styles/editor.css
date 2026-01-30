@@ -436,3 +436,36 @@
   text-decoration: line-through;
   opacity: 0.6;
 }
+
+.ProseMirror img[data-upload-status="pending"],
+.ProseMirror img[data-upload-status="uploading"] {
+  opacity: 0.7;
+  position: relative;
+}
+
+.ProseMirror img[data-upload-status="pending"]::after,
+.ProseMirror img[data-upload-status="uploading"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  to { 
+    transform: translate(-50%, -50%) rotate(360deg); 
+  }
+}
+
+.ProseMirror img[data-upload-status="error"] {
+  opacity: 0.4;
+  border: 2px solid #ef4444;
+}

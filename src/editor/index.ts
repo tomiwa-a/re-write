@@ -20,7 +20,6 @@ import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
-import Image from "@tiptap/extension-image";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Dropcursor from "@tiptap/extension-dropcursor";
@@ -30,11 +29,15 @@ import HardBreak from "@tiptap/extension-hard-break";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import { ConvexClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
+import { OptimisticImage } from "./extensions/OptimisticImage";
+import { ImageUploadQueue } from "../lib/ImageUploadQueue";
+import { v4 as uuidv4 } from 'uuid';
 
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
 let currentConvex: ConvexClient | null = null;
 let currentDocId: string | null = null;
+let uploadQueue: ImageUploadQueue | null = null;
 
 function setupRightPaneToggle() {
   if (rightPaneToggleListenerAdded) return;
@@ -50,6 +53,38 @@ function setupRightPaneToggle() {
   });
   
   rightPaneToggleListenerAdded = true;
+}
+
+function initUploadQueue() {
+  if (!uploadQueue && currentConvex) {
+    console.log('[initUploadQueue] Initializing upload queue');
+    uploadQueue = new ImageUploadQueue(currentConvex, (tempId, url) => {
+      if (!editorInstance) return;
+      
+      console.log(`[initUploadQueue] Replacing temp image ${tempId} with URL: ${url}`);
+      const { state } = editorInstance;
+      const { doc } = state;
+      
+      doc.descendants((node, pos) => {
+        if (node.type.name === 'image' && node.attrs.tempId === tempId) {
+          console.log(`[initUploadQueue] Found temp image at pos ${pos}, updating...`);
+          if (!editorInstance) return false;
+          
+          editorInstance.chain()
+            .setNodeSelection(pos)
+            .updateAttributes('image', {
+              src: url,
+              uploadStatus: null,
+              tempId: null,
+            })
+            .run();
+          
+          console.log(`[initUploadQueue] Replaced temp image ${tempId} with URL`);
+          return false;
+        }
+      });
+    });
+  }
 }
 
 export function createEditor(
@@ -103,7 +138,7 @@ export function createEditor(
       TableRow,
       TableCell,
       TableHeader,
-      Image.configure({
+      OptimisticImage.configure({
         inline: false,
         allowBase64: true,
         HTMLAttributes: {
@@ -137,61 +172,35 @@ export function createEditor(
     if (!files || files.length === 0) return;
 
     const imageFile = Array.from(files).find(file => file.type.startsWith('image/'));
-    if (!imageFile) return;
+    if (!imageFile || !editorInstance) return;
 
-    if (!currentConvex || !currentDocId || !editorInstance || editorInstance.isDestroyed) {
-      console.error('[Drag-Drop] Required dependencies not available');
-      return;
-    }
+    const tempId = uuidv4();
+    console.log(`[Drag-Drop] Image dropped: ${imageFile.name}, temp ID: ${tempId}`);
 
-    try {
-      console.log('[Drag-Drop] Uploading image:', imageFile.name, imageFile.size);
-      console.log('[Drag-Drop] currentConvex:', !!currentConvex);
-      console.log('[Drag-Drop] currentDocId:', currentDocId);
-      
-      console.log('[Drag-Drop] Step 1: Generating upload URL...');
-      const uploadUrl = await currentConvex.mutation(api.images.generateUploadUrl, {});
-      console.log('[Drag-Drop] Step 1 complete. Upload URL:', uploadUrl);
-      
-      console.log('[Drag-Drop] Step 2: Uploading file...');
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": imageFile.type },
-        body: imageFile,
-      });
-      console.log('[Drag-Drop] Step 2 complete. Response status:', result.status);
-      
-      if (!result.ok) {
-        throw new Error(`Upload failed with status ${result.status}: ${await result.text()}`);
-      }
-      
-      const responseData = await result.json();
-      console.log('[Drag-Drop] Response data:', responseData);
-      const { storageId } = responseData;
-      console.log('[Drag-Drop] Storage ID:', storageId);
-      
-      console.log('[Drag-Drop] Step 3: Saving metadata...');
-      const saveResult = await currentConvex.mutation(api.images.saveImage, {
-        storageId,
-        documentId: currentDocId,
-      });
-      console.log('[Drag-Drop] Step 3 complete:', saveResult);
-      const { url } = saveResult;
-      
-      console.log('[Drag-Drop] Step 4: Inserting into editor...');
-      editorInstance.chain().insertContent({
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      if (!base64) return;
+
+      console.log(`[Drag-Drop] Inserting image immediately with base64 (${base64.length} bytes)`);
+      editorInstance?.chain().insertContent({
         type: 'image',
-        attrs: { src: url }
+        attrs: {
+          src: base64,
+          uploadStatus: 'pending',
+          tempId,
+        }
       }).run();
-      console.log('[Drag-Drop] ✅ Upload complete!');
-    } catch (error) {
-      console.error('[Drag-Drop] ❌ Upload failed:', error);
-      console.error('[Drag-Drop] Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      alert(`Image upload failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
+
+      if (currentConvex && currentDocId) {
+        console.log(`[Drag-Drop] Adding to upload queue: ${tempId}`);
+        initUploadQueue();
+        uploadQueue?.add(tempId, imageFile, base64, currentDocId);
+      } else {
+        console.warn('[Drag-Drop] No Convex client or document ID - image will stay as base64');
+      }
+    };
+    reader.readAsDataURL(imageFile);
   });
 
   editorElement.addEventListener('dragover', (event) => {
@@ -523,72 +532,36 @@ function handleImageUpload(): void {
   input.onchange = async (e) => {
     console.log('[handleImageUpload] File selected');
     const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) {
-      console.log('[handleImageUpload] No file selected');
-      return;
-    }
+    if (!file || !editorInstance) return;
+
+    const tempId = uuidv4();
+    console.log(`[handleImageUpload] Generated temp ID: ${tempId}`);
     
-    if (!currentConvex || !currentDocId) {
-      console.error('[handleImageUpload] Convex client or document ID not available');
-      return;
-    }
-    
-    if (!editorInstance || editorInstance.isDestroyed) {
-      console.error('[handleImageUpload] Editor instance not available or destroyed');
-      return;
-    }
-    
-    try {
-      console.log('[handleImageUpload] Uploading to Convex:', file.name, file.size);
-      console.log('[handleImageUpload] currentConvex:', !!currentConvex);
-      console.log('[handleImageUpload] currentDocId:', currentDocId);
-      console.log('[handleImageUpload] api.images:', api.images);
-      
-      console.log('[handleImageUpload] Step 1: Generating upload URL...');
-      const uploadUrl = await currentConvex.mutation(api.images.generateUploadUrl, {});
-      console.log('[handleImageUpload] Step 1 complete. Upload URL:', uploadUrl);
-      
-      console.log('[handleImageUpload] Step 2: Uploading file to storage...');
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      console.log('[handleImageUpload] Step 2 complete. Response status:', result.status);
-      
-      if (!result.ok) {
-        throw new Error(`Upload failed with status ${result.status}: ${await result.text()}`);
-      }
-      
-      const responseData = await result.json();
-      console.log('[handleImageUpload] Step 2 response data:', responseData);
-      const { storageId } = responseData;
-      console.log('[handleImageUpload] Storage ID:', storageId);
-      
-      console.log('[handleImageUpload] Step 3: Saving image metadata...');
-      const saveResult = await currentConvex.mutation(api.images.saveImage, {
-        storageId,
-        documentId: currentDocId,
-      });
-      console.log('[handleImageUpload] Step 3 complete. Save result:', saveResult);
-      const { url } = saveResult;
-      console.log('[handleImageUpload] Image URL:', url);
-      
-      console.log('[handleImageUpload] Step 4: Inserting image into editor...');
-      const insertResult = editorInstance.chain().insertContent({
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const base64 = readerEvent.target?.result as string;
+      if (!base64) return;
+
+      console.log(`[handleImageUpload] Inserting image immediately with base64 (${base64.length} bytes)`);
+      editorInstance?.chain().insertContent({
         type: 'image',
-        attrs: { src: url }
+        attrs: {
+          src: base64,
+          uploadStatus: 'pending',
+          tempId,
+        }
       }).run();
-      console.log('[handleImageUpload] Step 4 complete. Insert result:', insertResult);
-      console.log('[handleImageUpload] ✅ Upload complete!');
-    } catch (error) {
-      console.error('[handleImageUpload] ❌ Upload failed:', error);
-      console.error('[handleImageUpload] Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      alert(`Image upload failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
+
+      if (currentConvex && currentDocId) {
+        console.log(`[handleImageUpload] Adding to upload queue: ${tempId}`);
+        initUploadQueue();
+        uploadQueue?.add(tempId, file, base64, currentDocId);
+      } else {
+        console.warn('[handleImageUpload] No Convex client or document ID - image will stay as base64');
+      }
+    };
+    
+    reader.readAsDataURL(file);
   };
   
   input.click();

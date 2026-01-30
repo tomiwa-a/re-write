@@ -211,6 +211,28 @@ export class SyncEngine {
     this.isPushing = true;
     this.updateStatus('syncing');
     
+    const hasPendingImages = queue.some(item => {
+      if (item.entityType === 'document' && item.data && typeof item.data === 'object') {
+        const content = (item.data as any).content;
+        if (typeof content === 'string') {
+          const hasPending = content.includes('data-upload-status="pending"') || 
+                            content.includes('"uploadStatus":"pending"');
+          if (hasPending) {
+            console.log(`[SyncEngine] Document ${item.entityId} has pending images, delaying sync`);
+          }
+          return hasPending;
+        }
+      }
+      return false;
+    });
+
+    if (hasPendingImages) {
+      console.log(`[SyncEngine] Skipping push - documents have pending image uploads`);
+      this.isPushing = false;
+      setTimeout(() => this.push(), 2000);
+      return;
+    }
+    
     try {
       console.log(`[SyncEngine] Pushing ${queue.length} changes to server`);
       const changes = queue.map((item) => {
