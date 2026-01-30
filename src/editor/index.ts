@@ -30,12 +30,11 @@ import HardBreak from "@tiptap/extension-hard-break";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import { ConvexClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
 
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
 let currentConvex: ConvexClient | null = null;
-let currentDocId: Id<"documents"> | null = null;
+let currentDocId: string | null = null;
 
 function setupRightPaneToggle() {
   if (rightPaneToggleListenerAdded) return;
@@ -64,7 +63,7 @@ export function createEditor(
   console.log('[createEditor] Initializing Tiptap editor');
   
   if (convex) currentConvex = convex;
-  if (documentId) currentDocId = documentId as Id<"documents">;
+  if (documentId) currentDocId = documentId;
   
   if (editorInstance) {
     console.log('[createEditor] Destroying existing instance');
@@ -146,29 +145,52 @@ export function createEditor(
     }
 
     try {
-      console.log('[Drag-Drop] Uploading image:', imageFile.name);
+      console.log('[Drag-Drop] Uploading image:', imageFile.name, imageFile.size);
+      console.log('[Drag-Drop] currentConvex:', !!currentConvex);
+      console.log('[Drag-Drop] currentDocId:', currentDocId);
       
+      console.log('[Drag-Drop] Step 1: Generating upload URL...');
       const uploadUrl = await currentConvex.mutation(api.images.generateUploadUrl, {});
+      console.log('[Drag-Drop] Step 1 complete. Upload URL:', uploadUrl);
       
+      console.log('[Drag-Drop] Step 2: Uploading file...');
       const result = await fetch(uploadUrl, {
         method: "POST",
         headers: { "Content-Type": imageFile.type },
         body: imageFile,
       });
+      console.log('[Drag-Drop] Step 2 complete. Response status:', result.status);
       
-      const { storageId } = await result.json();
+      if (!result.ok) {
+        throw new Error(`Upload failed with status ${result.status}: ${await result.text()}`);
+      }
       
-      const { url } = await currentConvex.mutation(api.images.saveImage, {
+      const responseData = await result.json();
+      console.log('[Drag-Drop] Response data:', responseData);
+      const { storageId } = responseData;
+      console.log('[Drag-Drop] Storage ID:', storageId);
+      
+      console.log('[Drag-Drop] Step 3: Saving metadata...');
+      const saveResult = await currentConvex.mutation(api.images.saveImage, {
         storageId,
         documentId: currentDocId,
       });
+      console.log('[Drag-Drop] Step 3 complete:', saveResult);
+      const { url } = saveResult;
       
+      console.log('[Drag-Drop] Step 4: Inserting into editor...');
       editorInstance.chain().insertContent({
         type: 'image',
         attrs: { src: url }
       }).run();
+      console.log('[Drag-Drop] ✅ Upload complete!');
     } catch (error) {
-      console.error('[Drag-Drop] Upload failed:', error);
+      console.error('[Drag-Drop] ❌ Upload failed:', error);
+      console.error('[Drag-Drop] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      alert(`Image upload failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   });
 
@@ -518,30 +540,54 @@ function handleImageUpload(): void {
     
     try {
       console.log('[handleImageUpload] Uploading to Convex:', file.name, file.size);
+      console.log('[handleImageUpload] currentConvex:', !!currentConvex);
+      console.log('[handleImageUpload] currentDocId:', currentDocId);
+      console.log('[handleImageUpload] api.images:', api.images);
       
+      console.log('[handleImageUpload] Step 1: Generating upload URL...');
       const uploadUrl = await currentConvex.mutation(api.images.generateUploadUrl, {});
+      console.log('[handleImageUpload] Step 1 complete. Upload URL:', uploadUrl);
       
+      console.log('[handleImageUpload] Step 2: Uploading file to storage...');
       const result = await fetch(uploadUrl, {
         method: "POST",
         headers: { "Content-Type": file.type },
         body: file,
       });
+      console.log('[handleImageUpload] Step 2 complete. Response status:', result.status);
       
-      const { storageId } = await result.json();
+      if (!result.ok) {
+        throw new Error(`Upload failed with status ${result.status}: ${await result.text()}`);
+      }
       
-      const { url } = await currentConvex.mutation(api.images.saveImage, {
+      const responseData = await result.json();
+      console.log('[handleImageUpload] Step 2 response data:', responseData);
+      const { storageId } = responseData;
+      console.log('[handleImageUpload] Storage ID:', storageId);
+      
+      console.log('[handleImageUpload] Step 3: Saving image metadata...');
+      const saveResult = await currentConvex.mutation(api.images.saveImage, {
         storageId,
         documentId: currentDocId,
       });
+      console.log('[handleImageUpload] Step 3 complete. Save result:', saveResult);
+      const { url } = saveResult;
+      console.log('[handleImageUpload] Image URL:', url);
       
-      console.log('[handleImageUpload] Image uploaded, URL:', url);
-      
-      editorInstance.chain().insertContent({
+      console.log('[handleImageUpload] Step 4: Inserting image into editor...');
+      const insertResult = editorInstance.chain().insertContent({
         type: 'image',
         attrs: { src: url }
       }).run();
+      console.log('[handleImageUpload] Step 4 complete. Insert result:', insertResult);
+      console.log('[handleImageUpload] ✅ Upload complete!');
     } catch (error) {
-      console.error('[handleImageUpload] Upload failed:', error);
+      console.error('[handleImageUpload] ❌ Upload failed:', error);
+      console.error('[handleImageUpload] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      alert(`Image upload failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
   

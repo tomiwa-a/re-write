@@ -11,7 +11,7 @@ export const generateUploadUrl = mutation({
 export const saveImage = mutation({
   args: {
     storageId: v.string(),
-    documentId: v.id("documents"),
+    documentId: v.string(),
   },
   handler: async (ctx, args) => {
     const imageId = await ctx.db.insert("images", {

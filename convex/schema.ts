@@ -46,7 +46,7 @@ export default defineSchema({
 
   images: defineTable({
     storageId: v.string(),
-    documentId: v.id("documents"),
+    documentId: v.string(),
     uploadedAt: v.number(),
   })
     .index("by_document", ["documentId"]),
