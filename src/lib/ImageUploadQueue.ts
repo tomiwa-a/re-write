@@ -1,5 +1,6 @@
 import { ConvexClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
+import { db } from "./db";
 
 interface PendingUpload {
   id: string;
@@ -35,6 +36,18 @@ export class ImageUploadQueue {
       documentId,
       retries: 0,
       status: 'pending',
+    });
+    
+    await db.uploadQueue.put({
+      tempId: id,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+      base64,
+      documentId,
+      retries: 0,
+      status: 'pending',
+      createdAt: Date.now(),
     });
     
     this.processQueue();
@@ -84,6 +97,7 @@ export class ImageUploadQueue {
 
         upload.status = 'success';
         this.queue.delete(id);
+        await db.uploadQueue.delete(id);
         
         console.log(`[UploadQueue] Upload complete: ${id} -> ${url}`);
         this.onUploadComplete(id, url);
@@ -94,9 +108,11 @@ export class ImageUploadQueue {
         
         if (upload.retries >= 3) {
           upload.status = 'error';
+          await db.uploadQueue.update(id, { status: 'error', retries: upload.retries });
           console.error(`[UploadQueue] Max retries reached for ${id}`);
         } else {
           upload.status = 'pending';
+          await db.uploadQueue.update(id, { status: 'pending', retries: upload.retries });
           console.log(`[UploadQueue] Retrying ${id} (attempt ${upload.retries + 1}/3)`);
           await new Promise(resolve => setTimeout(resolve, 1000 * upload.retries));
         }
@@ -110,7 +126,7 @@ export class ImageUploadQueue {
     return this.queue.get(id)?.status || null;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     const upload = this.queue.get(id);
     if (upload) {
       console.log(`[UploadQueue] Removing ${id} from queue (status: ${upload.status})`);
@@ -121,6 +137,31 @@ export class ImageUploadQueue {
       }
       
       this.queue.delete(id);
+      await db.uploadQueue.delete(id);
+    }
+  }
+  
+  async restore() {
+    console.log('[UploadQueue] Restoring queue from IndexedDB');
+    const items = await db.uploadQueue.toArray();
+    
+    for (const item of items) {
+      const blob = await fetch(item.base64).then(r => r.blob());
+      const file = new File([blob], item.fileName, { type: item.fileType });
+      
+      this.queue.set(item.tempId, {
+        id: item.tempId,
+        file,
+        base64: item.base64,
+        documentId: item.documentId,
+        retries: item.retries,
+        status: item.status,
+      });
+    }
+    
+    console.log(`[UploadQueue] Restored ${items.length} pending uploads`);
+    if (items.length > 0) {
+      this.processQueue();
     }
   }
 }

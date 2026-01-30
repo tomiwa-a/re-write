@@ -1,10 +1,23 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { Folder, Document, SyncQueueItem } from "../types/backend";
 
+interface UploadQueueItem {
+  tempId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  base64: string;
+  documentId: string;
+  retries: number;
+  status: 'pending' | 'uploading' | 'error';
+  createdAt: number;
+}
+
 class CelluloseDB extends Dexie {
   folders!: EntityTable<Folder, "id">;
   documents!: EntityTable<Document, "id">;
   syncQueue!: EntityTable<SyncQueueItem, "id">;
+  uploadQueue!: EntityTable<UploadQueueItem, "tempId">;
 
   constructor() {
     super("cellulose");
@@ -21,6 +34,10 @@ class CelluloseDB extends Dexie {
 
     this.version(3).stores({
       documents: "id, type, folderId, updatedAt, isArchived, isLocalOnly",
+    });
+    
+    this.version(4).stores({
+      uploadQueue: "tempId, documentId, status, createdAt",
     });
   }
 }

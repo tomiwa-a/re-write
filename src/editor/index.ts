@@ -84,6 +84,8 @@ function initUploadQueue() {
         }
       });
     });
+    
+    uploadQueue.restore();
   }
 }
 
