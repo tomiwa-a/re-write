@@ -111,7 +111,16 @@ export class ImageUploadQueue {
   }
 
   remove(id: string) {
-    console.log(`[UploadQueue] Removing ${id} from queue`);
-    this.queue.delete(id);
+    const upload = this.queue.get(id);
+    if (upload) {
+      console.log(`[UploadQueue] Removing ${id} from queue (status: ${upload.status})`);
+      
+      if (upload.status === 'uploading') {
+        console.log(`[UploadQueue] Cancelling in-progress upload for ${id}`);
+        upload.status = 'error';
+      }
+      
+      this.queue.delete(id);
+    }
   }
 }

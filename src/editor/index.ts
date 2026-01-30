@@ -166,6 +166,19 @@ export function createEditor(
     editable: true,
   });
 
+  editorInstance.on('update', ({ transaction }) => {
+    transaction.steps.forEach((step: any) => {
+      if (step.slice?.content) {
+        step.slice.content.forEach((node: any) => {
+          if (node.type.name === 'image' && node.attrs.tempId) {
+            console.log(`[Editor] Image deleted with tempId: ${node.attrs.tempId}`);
+            uploadQueue?.remove(node.attrs.tempId);
+          }
+        });
+      }
+    });
+  });
+
   editorElement.addEventListener('drop', async (event) => {
     event.preventDefault();
     const files = event.dataTransfer?.files;
