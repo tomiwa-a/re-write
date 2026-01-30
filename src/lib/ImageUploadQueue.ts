@@ -19,6 +19,11 @@ export class ImageUploadQueue {
   constructor(convex: ConvexClient, onComplete: (id: string, url: string) => void) {
     this.convex = convex;
     this.onUploadComplete = onComplete;
+    
+    window.addEventListener('online', () => {
+      console.log('[UploadQueue] Network online, resuming queue');
+      this.processQueue();
+    });
   }
 
   async add(id: string, file: File, base64: string, documentId: string) {
@@ -37,6 +42,14 @@ export class ImageUploadQueue {
 
   private async processQueue() {
     if (this.processing) return;
+    
+    const isOnline = typeof navigator !== "undefined" && navigator.onLine !== undefined ? navigator.onLine : true;
+    if (!isOnline) {
+      console.log('[UploadQueue] Offline, pausing queue processing');
+      this.processing = false;
+      return;
+    }
+    
     this.processing = true;
 
     for (const [id, upload] of this.queue) {
