@@ -58,7 +58,7 @@ function initUploadQueue() {
   if (!uploadQueue && currentConvex) {
     console.log('[initUploadQueue] Initializing upload queue');
     uploadQueue = new ImageUploadQueue(currentConvex, (tempId, url) => {
-      if (!editorInstance) return;
+      if (!editorInstance || editorInstance.isDestroyed) return;
       
       console.log(`[initUploadQueue] Replacing temp image ${tempId} with URL: ${url}`);
       const { state } = editorInstance;
@@ -440,6 +440,8 @@ function setupToolbar(toolbar: HTMLElement, editor: Editor): void {
   `;
 
   toolbar.addEventListener("click", (e) => {
+    if (editor.isDestroyed) return;
+    
     const target = e.target as HTMLElement;
     const button = target.closest("button");
     if (!button) return;
