@@ -193,7 +193,12 @@ export function createEditor(
           onClick: (node: any, pos: any) => {
             openMathModal(node.attrs.latex, (latex) => {
                if (editorInstance) {
-                 editorInstance.chain().setNodeSelection(pos).updateAttributes('inlineMath', { latex }).focus().run()
+                 editorInstance.chain()
+                   .setNodeSelection(pos)
+                   .updateAttributes('inlineMath', { latex })
+                   .setTextSelection(pos + node.nodeSize)
+                   .focus()
+                   .run()
                }
             });
           },
@@ -202,7 +207,12 @@ export function createEditor(
           onClick: (node: any, pos: any) => {
             openMathModal(node.attrs.latex, (latex) => {
                if (editorInstance) {
-                 editorInstance.chain().setNodeSelection(pos).updateAttributes('blockMath', { latex }).focus().run()
+                 editorInstance.chain()
+                   .setNodeSelection(pos)
+                   .updateAttributes('blockMath', { latex })
+                   .setTextSelection(pos + node.nodeSize)
+                   .focus()
+                   .run()
                }
             });
           },
