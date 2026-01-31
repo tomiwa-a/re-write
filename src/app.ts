@@ -56,11 +56,12 @@ class App {
     this.editorManager.init();
     this.rightPaneManager.render();
     
-    if (firstDocId) {
-      console.log('[App] init: Selecting first document:', firstDocId);
+    const restored = this.sidebarManager.restoreSession();
+    if (!restored && firstDocId) {
+      console.log('[App] init: Selecting first document (fallback):', firstDocId);
       this.sidebarManager.selectFile(firstDocId);
-    } else {
-        console.warn('[App] init: No first document to select');
+    } else if (!restored) {
+        console.warn('[App] init: No session restored and no first document');
     }
     
     // Auto-collapse sidebar on mobile/tablet

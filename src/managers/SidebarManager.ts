@@ -144,9 +144,58 @@ export class SidebarManager {
         await this.loadData();
     }
 
+    public restoreSession(): boolean {
+        const lastId = localStorage.getItem('rewrite_last_doc_id');
+        if (lastId) {
+             const found = this.expandPathToDocument(lastId);
+             if (found) {
+                 this.selectFile(lastId);
+                 return true;
+             }
+        }
+        return false;
+    }
+
+    private expandPathToDocument(docId: string): boolean {
+        let found = false;
+
+        this.categories.forEach(category => {
+            if (this.findAndExpandInItems(category.items || [], docId)) {
+                category.collapsed = false;
+                found = true;
+            } else {
+                category.collapsed = true;
+            }
+        });
+        
+        if (found) {
+            this.renderSidebar();
+        }
+        return found;
+    }
+
+    private findAndExpandInItems(items: SidebarItem[], targetId: string): boolean {
+        for (const item of items) {
+             if (item.id === targetId) return true;
+             
+             if (item.children && item.children.length > 0) {
+                 if (this.findAndExpandInItems(item.children, targetId)) {
+                     // Found in children, expand this folder
+                     if (item.type === 'folder') {
+                         item.collapsed = false;
+                         this.expandedFolderIds.add(item.id);
+                     }
+                     return true;
+                 }
+             }
+        }
+        return false;
+    }
+
     public selectFile(id: string): void {
         console.log('[SidebarManager] selectFile() called for:', id);
         this.activeFileId = id;
+        localStorage.setItem('rewrite_last_doc_id', id);
         
         document.querySelectorAll('.tree-item.file').forEach(el => el.classList.remove('active'));
         const fileEl = document.querySelector(`.tree-item.file[data-id="${id}"]`);
@@ -315,11 +364,8 @@ export class SidebarManager {
             file.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = file.getAttribute('data-id');
-                if (id && this.onFileSelect) {
-                    this.activeFileId = id;
-                    document.querySelectorAll('.tree-item.file').forEach(el => el.classList.remove('active'));
-                    file.classList.add('active');
-                    this.onFileSelect(id);
+                if (id) {
+                    this.selectFile(id);
                 }
             });
         });
@@ -436,9 +482,7 @@ export class SidebarManager {
                 }
                 this.activeFileId = newDoc.id;
                 await this.loadData();
-                if (this.onFileSelect) {
-                    this.onFileSelect(newDoc.id);
-                }
+                this.selectFile(newDoc.id);
                 Toast.success(`Created ${type}: ${name}`);
             }
         });
