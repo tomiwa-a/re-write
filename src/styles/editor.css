@@ -681,3 +681,55 @@
 .math-modal-save:hover {
   opacity: 0.9;
 }
+
+/* Math Modal Templates */
+.math-modal-templates {
+  margin-bottom: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  background: rgba(0,0,0,0.01);
+}
+
+.math-modal-category {
+  margin-bottom: 12px;
+}
+
+.math-modal-category:last-child {
+  margin-bottom: 0px; 
+}
+
+.math-modal-category-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.math-modal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.math-modal-chip {
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.1s;
+  font-family: monospace; /* Helpful for math symbols */
+}
+
+.math-modal-chip:hover {
+  border-color: var(--text-primary);
+  background: rgba(0,0,0,0.02);
+  transform: translateY(-1px);
+}
