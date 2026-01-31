@@ -1,6 +1,7 @@
 
 import { Editor } from "@tiptap/core";
 import { Icons } from "../../assets/icons";
+import { openMathModal } from "./MathModal";
 
 // Helper for icons
 const icon = (svg: string) => `<span style="display: flex;">${svg}</span>`;
@@ -34,6 +35,7 @@ export function createToolbar(editor: Editor, onImageUpload: () => void): HTMLEl
       <button type="button" data-action="table" title="Insert Table">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
       </button>
+      <button type="button" data-action="math" title="Insert Math">${icon(Icons.math)}</button>
       <button type="button" data-action="image" title="Insert Image">${icon(Icons.image)}</button>
     </div>
     <div class="toolbar-divider"></div>
@@ -89,6 +91,11 @@ function setupToolbarEvents(toolbar: HTMLElement, editor: Editor, onImageUpload:
       case "alignRight": editor.chain().focus().setTextAlign("right").run(); break;
       case "taskList": editor.chain().focus().toggleTaskList().run(); break;
       case "table": editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); break;
+      case "math":
+        openMathModal('', (latex) => {
+            editor.chain().focus().insertContent({ type: 'inlineMath', attrs: { latex } }).run();
+        });
+        break;
       case "image": onImageUpload(); break;
     }
 
