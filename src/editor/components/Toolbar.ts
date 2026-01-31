@@ -44,6 +44,7 @@ export function createToolbar(editor: Editor, onImageUpload: () => void): HTMLEl
       <button type="button" data-action="code" title="Code">${icon(Icons.code)}</button>
       <button type="button" data-action="underline" title="Underline">${icon(Icons.underline)}</button>
       <button type="button" data-action="highlight" title="Highlight">${icon(Icons.highlight)}</button>
+      <button type="button" data-action="math" title="Math Equation">${icon(Icons.math)}</button>
       <button type="button" data-action="link" title="Link">${icon(Icons.link)}</button>
     </div>
     <div class="toolbar-divider"></div>
@@ -55,9 +56,6 @@ export function createToolbar(editor: Editor, onImageUpload: () => void): HTMLEl
     <div class="toolbar-divider mobile-only"></div>
     <button type="button" class="mobile-only" id="mobile-right-sidebar-toggle" title="Properties">${icon(Icons.mobileToggle)}</button>
   `;
-
-  // Provide simple fallback icons for TaskList/Table if they weren't in the export list or I missed them
-  // (Note: Icons.taskList wasn't in list, used inline SVG above as fallback or I missed capturing it)
 
   setupToolbarEvents(toolbar, editor, onImageUpload);
   return toolbar;
@@ -86,6 +84,7 @@ function setupToolbarEvents(toolbar: HTMLElement, editor: Editor, onImageUpload:
       case "code": editor.chain().focus().toggleCode().run(); break;
       case "underline": editor.chain().focus().toggleUnderline().run(); break;
       case "highlight": editor.chain().focus().toggleHighlight().run(); break;
+      case "math": handleMath(editor); break;
       case "link": handleLink(editor); break;
       case "alignLeft": editor.chain().focus().setTextAlign("left").run(); break;
       case "alignCenter": editor.chain().focus().setTextAlign("center").run(); break;
@@ -166,4 +165,11 @@ function handleLink(editor: Editor): void {
   }
 
   editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+}
+
+function handleMath(editor: Editor): void {
+   editor.chain().focus().insertContent("$ $").run();
+   // Move cursor to middle of the empty equation
+   const { from } = editor.state.selection;
+   editor.chain().setTextSelection(from - 2).run();
 }

@@ -31,6 +31,7 @@ import orderedList from './svg/ordered-list.svg?raw';
 import blockquote from './svg/blockquote.svg?raw';
 import image from './svg/image.svg?raw';
 import mobileToggle from './svg/mobile-toggle.svg?raw';
+import math from './svg/math.svg?raw';
 
 export const Icons = {
   addColBefore,
@@ -63,4 +64,5 @@ export const Icons = {
   blockquote,
   image,
   mobileToggle,
+  math,
 };
