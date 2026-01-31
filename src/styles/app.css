@@ -571,7 +571,6 @@
 .paper-sheet {
   background: var(--bg-paper);
   width: 100%;
-  max-width: 850px;
   height: 100%;
   box-shadow: var(--shadow-lg);
   display: flex;
