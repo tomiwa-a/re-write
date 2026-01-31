@@ -186,20 +186,40 @@ export function createEditor(
       HardBreak,
       CharacterCount,
       Typography,
-      Mathematics,
+      Mathematics.configure({
+        inlineOptions: {
+          onClick: (node: any, pos: any) => {
+            const latex = window.prompt('Edit Equation:', node.attrs.latex)
+            if (latex !== null && editorInstance) {
+              editorInstance.chain().setNodeSelection(pos).updateAttributes('inlineMath', { latex }).focus().run()
+            }
+          },
+        },
+        blockOptions: {
+          onClick: (node: any, pos: any) => {
+            const latex = window.prompt('Edit Block Equation:', node.attrs.latex)
+            if (latex !== null && editorInstance) {
+              editorInstance.chain().setNodeSelection(pos).updateAttributes('blockMath', { latex }).focus().run()
+            }
+          },
+        },
+        katexOptions: {
+          throwOnError: false,
+        },
+      }),
       Extension.create({
         name: 'mathInputRule',
         addInputRules() {
           return [
             new InputRule({
-              find: /\$([^\$]+)\$/,
+              find: /(?<!\$)\$(?!\$)([^\$]+)(?<!\$)\$(?!\$)/,
               handler: ({ state, range, match }) => {
                 const { tr } = state
                 const start = range.from
                 const end = range.to
                 const latex = match[1]
                 
-                if (latex.trim()) {
+                if (latex && latex.trim()) {
                    tr.replaceWith(start, end, this.editor.schema.nodes.inlineMath.create({ latex }))
                 }
               }
