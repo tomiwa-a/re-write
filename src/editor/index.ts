@@ -28,7 +28,6 @@ import Placeholder from "@tiptap/extension-placeholder";
 import HardBreak from "@tiptap/extension-hard-break";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import { ConvexClient } from "convex/browser";
-import { api } from "../../convex/_generated/api";
 import { OptimisticImage } from "./extensions/OptimisticImage";
 import { ImageUploadQueue } from "../lib/ImageUploadQueue";
 import { v4 as uuidv4 } from 'uuid';
