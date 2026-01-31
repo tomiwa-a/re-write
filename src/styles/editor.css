@@ -546,3 +546,30 @@
   background-color: var(--text-primary);
   color: white;
 }
+
+/* Character Count */
+.character-count {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 50;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+@media (max-width: 600px) {
+  .character-count {
+    bottom: 10px;
+    right: 10px;
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+}

@@ -34,6 +34,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { createToolbar } from "./components/Toolbar";
 import { BubbleMenu } from "@tiptap/extension-bubble-menu";
 import { createTableBubbleMenuElement, setupTableBubbleMenu } from "./components/TableBubbleMenu";
+import CharacterCount from '@tiptap/extension-character-count';
+import Typography from '@tiptap/extension-typography';
 
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
@@ -107,6 +109,9 @@ export function createEditor(
   if (editorInstance) {
     console.log('[createEditor] Destroying existing instance');
     editorInstance.destroy();
+    
+    const existingCount = document.querySelector('.character-count');
+    if (existingCount) existingCount.remove();
   }
 
   setupRightPaneToggle();
@@ -173,6 +178,10 @@ export function createEditor(
  
       Placeholder.configure({ placeholder: "Start writing..." }),
       HardBreak,
+      Placeholder.configure({ placeholder: "Start writing..." }),
+      HardBreak,
+      CharacterCount,
+      Typography,
       ...extraExtensions,
     ],
     content: initialContent,
@@ -184,7 +193,18 @@ export function createEditor(
   setupTableBubbleMenu(tableMenuElement, editorInstance);
 
 
-  editorInstance.on('update', ({ transaction }) => {
+  // Create and append character count element
+  const characterCountElement = document.createElement('div');
+  characterCountElement.className = 'character-count';
+  characterCountElement.textContent = '0 words | 0 characters';
+  document.body.appendChild(characterCountElement); 
+
+  editorInstance.on('update', ({ transaction, editor }) => {
+    // Update character count
+    const wordCount = editor.storage.characterCount.words();
+    const characterCount = editor.storage.characterCount.characters();
+    characterCountElement.textContent = `${wordCount} words | ${characterCount} characters`;
+
     transaction.steps.forEach((step: any) => {
       if (step.slice?.content) {
         step.slice.content.forEach((node: any) => {
