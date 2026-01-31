@@ -168,8 +168,8 @@ function handleLink(editor: Editor): void {
 }
 
 function handleMath(editor: Editor): void {
-   editor.chain().focus().insertContent("$ $").run();
+   editor.chain().focus().insertContent("$$").run();
    // Move cursor to middle of the empty equation
    const { from } = editor.state.selection;
-   editor.chain().setTextSelection(from - 2).run();
+   editor.chain().setTextSelection(from - 1).run();
 }

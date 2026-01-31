@@ -41,6 +41,8 @@ import 'katex/dist/katex.min.css';
 
 
 
+import { Extension, InputRule } from "@tiptap/core";
+
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
 let currentConvex: ConvexClient | null = null;
@@ -185,6 +187,26 @@ export function createEditor(
       CharacterCount,
       Typography,
       Mathematics,
+      Extension.create({
+        name: 'mathInputRule',
+        addInputRules() {
+          return [
+            new InputRule({
+              find: /\$([^\$]+)\$/,
+              handler: ({ state, range, match }) => {
+                const { tr } = state
+                const start = range.from
+                const end = range.to
+                const latex = match[1]
+                
+                if (latex.trim()) {
+                   tr.replaceWith(start, end, this.editor.schema.nodes.inlineMath.create({ latex }))
+                }
+              }
+            })
+          ]
+        }
+      }),
       ...extraExtensions,
     ],
     content: initialContent,
