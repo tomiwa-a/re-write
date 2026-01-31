@@ -211,9 +211,34 @@ export class SyncEngine {
     this.isPushing = true;
     this.updateStatus('syncing');
     
+    const { readyToSync, delayedItems } = queue.reduce((acc, item) => {
+      if (item.entityType === 'document' && item.data && typeof item.data === 'object') {
+        const content = (item.data as any).content;
+        if (typeof content === 'string') {
+          const hasPending = content.includes('data-upload-status="pending"') || 
+                            content.includes('"uploadStatus":"pending"');
+          if (hasPending) {
+            console.log(`[SyncEngine] Delaying document ${item.entityId} - has pending images`);
+            acc.delayedItems.push(item);
+            return acc;
+          }
+        }
+      }
+      acc.readyToSync.push(item);
+      return acc;
+    }, { readyToSync: [] as any[], delayedItems: [] as any[] });
+
+    if (readyToSync.length === 0) {
+      console.log(`[SyncEngine] All items have pending images, retrying in 2s`);
+      this.isPushing = false;
+      setTimeout(() => this.push(), 2000);
+      return;
+    }
+
+    console.log(`[SyncEngine] Pushing ${readyToSync.length} items (${delayedItems.length} delayed)`);
+    
     try {
-      console.log(`[SyncEngine] Pushing ${queue.length} changes to server`);
-      const changes = queue.map((item) => {
+      const changes = readyToSync.map((item) => {
         let data = item.data;
         
         if (data && typeof data === 'object' && (data as any).userId === 'local-user') {
@@ -235,11 +260,16 @@ export class SyncEngine {
         userId: this.userId,
       });
 
-      console.log(`[SyncEngine] Push successful, clearing queue`);
-      const ids = queue.map((q) => q.id as number);
-      await db.syncQueue.bulkDelete(ids);
+      await db.syncQueue.bulkDelete(readyToSync.map(item => item.id!));
+      
+      console.log(`[SyncEngine] Push successful, ${delayedItems.length} items still pending`);
       this._lastSync = Date.now();
-      this.updateStatus('synced');
+      
+      if (delayedItems.length > 0) {
+        setTimeout(() => this.push(), 2000);
+      } else {
+        this.updateStatus('synced');
+      }
     } catch (e) {
       console.error(`[SyncEngine] Push failed:`, e);
       this.updateStatus('error');

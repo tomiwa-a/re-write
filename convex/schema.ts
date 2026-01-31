@@ -44,6 +44,13 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_document", ["documentId"]),
 
+  images: defineTable({
+    storageId: v.string(),
+    documentId: v.string(),
+    uploadedAt: v.number(),
+  })
+    .index("by_document", ["documentId"]),
+
   document_updates: defineTable({
     documentId: v.string(),
     update: v.bytes(), 
