@@ -465,6 +465,20 @@
   }
 }
 
+.offline-placeholder {
+  width: 300px;
+  height: 200px;
+  background: var(--paper-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  max-width: 100%;
+}
+
 .ProseMirror img[data-upload-status="error"] {
   opacity: 0.4;
   border: 2px solid #ef4444;
