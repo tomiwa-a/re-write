@@ -36,6 +36,10 @@ import { BubbleMenu } from "@tiptap/extension-bubble-menu";
 import { createTableBubbleMenuElement, setupTableBubbleMenu } from "./components/TableBubbleMenu";
 import CharacterCount from '@tiptap/extension-character-count';
 import Typography from '@tiptap/extension-typography';
+import { Mathematics } from '@tiptap/extension-mathematics';
+import 'katex/dist/katex.min.css';
+
+
 
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
@@ -178,10 +182,9 @@ export function createEditor(
  
       Placeholder.configure({ placeholder: "Start writing..." }),
       HardBreak,
-      Placeholder.configure({ placeholder: "Start writing..." }),
-      HardBreak,
       CharacterCount,
       Typography,
+      Mathematics,
       ...extraExtensions,
     ],
     content: initialContent,
