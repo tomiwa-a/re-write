@@ -31,6 +31,8 @@ import { ConvexClient } from "convex/browser";
 import { OptimisticImage } from "./extensions/OptimisticImage";
 import { ImageUploadQueue } from "../lib/ImageUploadQueue";
 import { v4 as uuidv4 } from 'uuid';
+import { createTableBubbleMenuElement, setupTableBubbleMenu } from "./components/TableBubbleMenu";
+import { BubbleMenu } from "@tiptap/extension-bubble-menu";
 
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
@@ -88,124 +90,6 @@ function initUploadQueue() {
   }
 }
 
-
-// Helper to create the bubble menu DOM element
-function createTableBubbleMenuElement(): HTMLElement {
-  const menu = document.createElement('div');
-  menu.className = 'bubble-menu table-bubble-menu';
-  menu.style.display = 'flex';
-  menu.style.gap = '4px';
-  menu.style.padding = '8px';
-  menu.style.background = 'white';
-  menu.style.borderRadius = '8px';
-  menu.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-  menu.style.border = '1px solid var(--border)';
-  menu.style.flexWrap = 'wrap';
-  menu.style.maxWidth = '400px';
-  
-  // Icon helper
-  const icon = (path: string) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${path}</svg>`;
-
-  const groups = [
-    {
-      name: 'Columns',
-      items: [
-        { action: 'addColumnBefore', title: 'Add Col Before', icon: icon('<path d="M12 9v6m-3-3h6m-9-6h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z"/>') },
-        { action: 'addColumnAfter', title: 'Add Col After', icon: icon('<path d="M12 9v6m3-3H9m-9-6h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z"/>') }, // Similar icon for now
-        { action: 'deleteColumn', title: 'Delete Col', icon: icon('<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>') },
-      ]
-    },
-    {
-      name: 'Rows',
-      items: [
-        { action: 'addRowBefore', title: 'Add Row Before', icon: icon('<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/><path d="M7 8h4"/>') }, 
-        { action: 'addRowAfter', title: 'Add Row After', icon: icon('<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M7 16h4"/>') },
-        { action: 'deleteRow', title: 'Delete Row', icon: icon('<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>') },
-      ]
-    },
-    {
-      name: 'Merge',
-      items: [
-        { action: 'mergeCells', title: 'Merge', icon: icon('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>') },
-        { action: 'splitCell', title: 'Split', icon: icon('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/><line x1="12" y1="3" x2="12" y2="21"/>') },
-      ]
-    },
-    {
-      name: 'Utils',
-      items: [
-        { action: 'toggleHeaderColumn', title: 'Header Col', icon: 'HC' },
-        { action: 'toggleHeaderRow', title: 'Header Row', icon: 'HR' },
-        { action: 'deleteTable', title: 'Delete Table', icon: icon('<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>') },
-      ]
-    }
-  ];
-
-  groups.forEach((group, index) => {
-    if (index > 0) {
-      const divider = document.createElement('div');
-      divider.style.width = '1px';
-      divider.style.background = 'var(--border)';
-      divider.style.margin = '0 4px';
-      menu.appendChild(divider);
-    }
-    
-    group.items.forEach(item => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'bubble-menu-btn';
-      btn.dataset.action = item.action;
-      btn.title = item.title;
-      btn.innerHTML = item.icon;
-      btn.style.background = 'transparent';
-      btn.style.border = 'none';
-      btn.style.cursor = 'pointer';
-      btn.style.padding = '4px';
-      btn.style.borderRadius = '4px';
-      btn.style.display = 'flex';
-      btn.style.alignItems = 'center';
-      btn.style.justifyContent = 'center';
-      btn.style.color = 'var(--text-secondary)';
-      
-      btn.onmouseenter = () => btn.style.background = 'rgba(0,0,0,0.05)';
-      btn.onmouseleave = () => btn.style.background = 'transparent';
-      
-      menu.appendChild(btn);
-    });
-  });
-
-  return menu;
-}
-
-function setupTableBubbleMenu(menu: HTMLElement, editor: Editor) {
-  menu.addEventListener('click', (e) => {
-    if (editor.isDestroyed) return;
-    const btn = (e.target as HTMLElement).closest('button');
-    if (!btn) return;
-    
-    const action = btn.dataset.action;
-    
-    switch (action) {
-      case 'addColumnBefore': editor.chain().focus().addColumnBefore().run(); break;
-      case 'addColumnAfter': editor.chain().focus().addColumnAfter().run(); break;
-      case 'deleteColumn': editor.chain().focus().deleteColumn().run(); break;
-      case 'addRowBefore': editor.chain().focus().addRowBefore().run(); break;
-      case 'addRowAfter': editor.chain().focus().addRowAfter().run(); break;
-      case 'deleteRow': editor.chain().focus().deleteRow().run(); break;
-      case 'mergeCells': editor.chain().focus().mergeCells().run(); break;
-      case 'splitCell': editor.chain().focus().splitCell().run(); break;
-      case 'toggleHeaderColumn': editor.chain().focus().toggleHeaderColumn().run(); break;
-      case 'toggleHeaderRow': editor.chain().focus().toggleHeaderRow().run(); break;
-      case 'toggleHeaderCell': editor.chain().focus().toggleHeaderCell().run(); break;
-      case 'deleteTable': editor.chain().focus().deleteTable().run(); break;
-    }
-  });
-}
-
-
-import { BubbleMenu } from "@tiptap/extension-bubble-menu";
-
-// ... previous code ...
-
 export function createEditor(
   editorElement: HTMLElement,
   toolbarElement: HTMLElement,
@@ -228,18 +112,11 @@ export function createEditor(
   
   // Create table menu element
   const tableMenuElement = createTableBubbleMenuElement();
-  // Append to body or editor element? Prosemirror handles it, but we need to supply the element.
-  // Ideally, we keep it in memory and let Tiptap handle the mounting, or we append it to a hidden container.
-  // Tiptap's BubbleMenu uses the 'element' option, which must be in the DOM if we want Tiptap to manage its visibility via Tippy?
-  // Actually, for BubbleMenu, passing the DOM element is enough, Tiptap uses Tippy to show it.
-  // But wait, the element needs to be "somewhere" initially? No, Tippy appends it to body/container.
-  // Nevermind, Tiptap 2 BubbleMenu expects the element property.
 
   console.log('[createEditor] Creating new Editor instance');
   editorInstance = new Editor({
     element: editorElement,
     extensions: [
-      // ... default extensions ...
       Document,
       Paragraph,
       Text,
