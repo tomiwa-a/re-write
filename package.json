@@ -20,6 +20,7 @@
     "@tiptap/core": "^3.15.3",
     "@tiptap/extension-blockquote": "^3.15.3",
     "@tiptap/extension-bold": "^3.15.3",
+    "@tiptap/extension-bubble-menu": "^3.18.0",
     "@tiptap/extension-bullet-list": "^3.15.3",
     "@tiptap/extension-code": "^3.15.3",
     "@tiptap/extension-code-block": "^3.17.0",

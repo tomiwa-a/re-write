@@ -510,3 +510,39 @@
   opacity: 0.4;
   border: 2px solid #ef4444;
 }
+
+/* Bubble Menu */
+.bubble-menu {
+  display: flex;
+  background-color: white;
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: 400px;
+}
+
+.bubble-menu-btn {
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.bubble-menu-btn:hover {
+  background-color: var(--paper-hover);
+  color: var(--text-primary);
+}
+
+.bubble-menu-btn.is-active {
+  background-color: var(--text-primary);
+  color: white;
+}
