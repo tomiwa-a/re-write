@@ -42,6 +42,8 @@ import 'katex/dist/katex.min.css';
 
 
 import { Extension, InputRule } from "@tiptap/core";
+import { openMathModal } from "./components/MathModal";
+
 
 let editorInstance: Editor | null = null;
 let rightPaneToggleListenerAdded = false;
@@ -189,18 +191,20 @@ export function createEditor(
       Mathematics.configure({
         inlineOptions: {
           onClick: (node: any, pos: any) => {
-            const latex = window.prompt('Edit Equation:', node.attrs.latex)
-            if (latex !== null && editorInstance) {
-              editorInstance.chain().setNodeSelection(pos).updateAttributes('inlineMath', { latex }).focus().run()
-            }
+            openMathModal(node.attrs.latex, (latex) => {
+               if (editorInstance) {
+                 editorInstance.chain().setNodeSelection(pos).updateAttributes('inlineMath', { latex }).focus().run()
+               }
+            });
           },
         },
         blockOptions: {
           onClick: (node: any, pos: any) => {
-            const latex = window.prompt('Edit Block Equation:', node.attrs.latex)
-            if (latex !== null && editorInstance) {
-              editorInstance.chain().setNodeSelection(pos).updateAttributes('blockMath', { latex }).focus().run()
-            }
+            openMathModal(node.attrs.latex, (latex) => {
+               if (editorInstance) {
+                 editorInstance.chain().setNodeSelection(pos).updateAttributes('blockMath', { latex }).focus().run()
+               }
+            });
           },
         },
         katexOptions: {

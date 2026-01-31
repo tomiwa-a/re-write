@@ -167,9 +167,13 @@ function handleLink(editor: Editor): void {
   editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
 }
 
+import { openMathModal } from "./MathModal";
+
 function handleMath(editor: Editor): void {
-   editor.chain().focus().insertContent("$$").run();
-   // Move cursor to middle of the empty equation
-   const { from } = editor.state.selection;
-   editor.chain().setTextSelection(from - 1).run();
+   openMathModal('', (latex) => {
+      editor.chain().focus().insertContent({
+         type: 'inlineMath',
+         attrs: { latex }
+      }).run();
+   });
 }
