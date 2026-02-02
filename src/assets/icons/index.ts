@@ -8,7 +8,7 @@ import addRowAfter from './svg/add-row-after.svg?raw';
 import deleteRow from './svg/delete-row.svg?raw';
 import mergeCells from './svg/merge-cells.svg?raw';
 import splitCell from './svg/split-cell.svg?raw';
-import deleteTable from './svg/delete-Table.svg?raw';
+import deleteTable from './svg/delete-table.svg';
 import toggleHeaderCol from './svg/toggle-header-col.svg?raw';
 import toggleHeaderRow from './svg/toggle-header-row.svg?raw';
 import toggleHeaderCell from './svg/toggle-header-cell.svg?raw';
